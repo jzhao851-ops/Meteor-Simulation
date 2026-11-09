@@ -1,0 +1,4849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>流星模拟 · 360° 全天覆盖规划器 By尾羽</title>
+<style>
+:root{
+  --bg0:#02040a;
+  --bg1:#060b16;
+  --panel:rgba(8,15,30,.78);
+  --panel-2:rgba(12,22,42,.72);
+  --line:rgba(116,174,255,.14);
+  --line-strong:rgba(116,174,255,.28);
+  --text:#e8f1ff;
+  --muted:#7c8fab;
+  --dim:#4d5f7a;
+  --cyan:#5ed7ff;
+  --blue:#3d8bff;
+  --gold:#ffd27a;
+  --coral:#ff7c8c;
+  --green:#5ee6b0;
+  --violet:#b79cff;
+  --mono:"Cascadia Code","SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  --sans:"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden}
+body{
+  background:var(--bg0);color:var(--text);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+button,input,select{font:inherit}
+button{outline:none}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{
+  outline:1px solid rgba(94,215,255,.65);outline-offset:2px;
+}
+#app{display:flex;width:100%;height:100%}
+
+/* ---------- sidebar ---------- */
+#sidebar{
+  position:relative;z-index:20;width:360px;flex:0 0 360px;height:100%;
+  overflow-y:auto;overflow-x:hidden;padding:20px 18px 30px;
+  background:linear-gradient(180deg,rgba(7,13,27,.985) 0%,rgba(4,8,17,.985) 100%);
+  border-right:1px solid var(--line);
+  box-shadow:18px 0 60px rgba(0,0,0,.28);
+  scrollbar-width:thin;scrollbar-color:rgba(94,215,255,.2) transparent;
+}
+#sidebar::-webkit-scrollbar{width:6px}
+#sidebar::-webkit-scrollbar-thumb{background:rgba(94,215,255,.18);border-radius:8px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+
+.brand{display:flex;align-items:center;gap:12px;padding:2px 2px 16px}
+.brand-mark{
+  width:38px;height:38px;border-radius:50%;position:relative;flex:0 0 38px;
+  background:radial-gradient(circle at 35% 30%,#3a8dff,#0b1a36 62%);
+  box-shadow:0 0 30px rgba(64,160,255,.35);border:1px solid rgba(140,210,255,.3);
+}
+.brand-mark::before{
+  content:"";position:absolute;inset:6px;border:1px solid rgba(140,210,255,.5);
+  border-radius:50%;transform:rotate(-25deg) scaleY(.45);
+}
+.brand-mark::after{
+  content:"";position:absolute;width:5px;height:5px;border-radius:50%;
+  background:var(--gold);top:8px;right:7px;box-shadow:0 0 10px var(--gold);
+}
+.brand h1{font-size:17px;letter-spacing:.12em;margin:0;font-weight:600}
+.brand p{margin:3px 0 0;font-size:9px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
+
+.section{padding:13px 0;border-top:1px solid rgba(116,174,255,.09)}
+.section:first-of-type{border-top:0;padding-top:0}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px}
+.section-head .cn{font-size:12px;font-weight:600;letter-spacing:.12em;color:#bcd3f2}
+.section-head .en{font-size:9px;letter-spacing:.22em;color:var(--dim);font-family:var(--mono)}
+
+.field{margin-bottom:11px}
+.field-label{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:.04em}
+.field-label b{color:var(--text);font-family:var(--mono);font-size:13px;font-weight:500}
+.field-label .unit{color:var(--dim);font-size:9px;margin-left:2px}
+.focal-edit{display:flex;align-items:center;gap:3px}
+.focal-input{
+  width:50px;height:24px;border:1px solid rgba(94,215,255,.2);border-radius:6px;
+  background:rgba(4,10,20,.75);color:var(--cyan);font-family:var(--mono);
+  font-size:13px;font-weight:500;text-align:right;padding:0 5px;
+  appearance:textfield;-moz-appearance:textfield;
+}
+.focal-input:focus{outline:none;border-color:rgba(94,215,255,.58);box-shadow:0 0 0 2px rgba(94,215,255,.08)}
+.focal-input::-webkit-outer-spin-button,.focal-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:18px;
+  background:transparent;cursor:pointer;margin:0;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:3px;border-radius:3px;
+  background:linear-gradient(90deg,rgba(94,215,255,.72),rgba(94,215,255,.16));
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:14px;height:14px;margin-top:-5.5px;
+  border-radius:50%;background:#dff7ff;border:2px solid #0a1a2e;
+  box-shadow:0 0 0 1px rgba(94,215,255,.8),0 0 14px rgba(94,215,255,.75);
+}
+input[type=range]::-moz-range-track{height:3px;border-radius:3px;background:rgba(94,215,255,.25)}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border:2px solid #0a1a2e;border-radius:50%;background:#dff7ff;box-shadow:0 0 0 1px rgba(94,215,255,.8),0 0 14px rgba(94,215,255,.75)}
+
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.chip{
+  border:1px solid rgba(116,174,255,.14);background:rgba(255,255,255,.025);
+  color:var(--muted);border-radius:999px;padding:4px 9px;font-size:10px;
+  font-family:var(--mono);cursor:pointer;transition:color .15s,border-color .15s,background .15s;
+}
+.chip:hover,.chip.active{color:var(--cyan);border-color:rgba(94,215,255,.45);background:rgba(94,215,255,.08)}
+
+.fov-readout{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;
+  border:1px solid rgba(116,174,255,.1);border-radius:12px;
+  background:rgba(255,255,255,.02);margin-bottom:11px;
+}
+.fov-readout div{display:flex;flex-direction:column;gap:3px}
+.fov-readout span{font-size:9px;color:var(--dim);letter-spacing:.08em}
+.fov-readout b{font-family:var(--mono);font-size:12px;color:#cfe8ff;font-weight:500}
+
+select,.text-input{
+  width:100%;border:1px solid var(--line);background:rgba(4,10,20,.75);
+  border-radius:9px;color:var(--text);padding:8px 10px;font-size:11px;
+  appearance:none;-webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+select:focus,.text-input:focus{border-color:rgba(94,215,255,.4)}
+
+.stepper{
+  display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;
+  overflow:hidden;background:rgba(4,10,20,.7);width:128px;
+}
+.stepper button{
+  width:34px;height:34px;border:0;background:transparent;color:var(--muted);
+  font-size:16px;cursor:pointer;transition:color .15s,background .15s;
+}
+.stepper button:hover{color:var(--cyan);background:rgba(94,215,255,.06)}
+.stepper input{
+  width:48px;height:34px;border:0;background:transparent;color:var(--text);
+  text-align:center;font-family:var(--mono);font-size:13px;appearance:textfield;
+}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  border:0;border-radius:10px;padding:10px 12px;font-size:11px;letter-spacing:.04em;
+  cursor:pointer;transition:transform .15s,box-shadow .15s,background .15s,border-color .15s,color .15s;
+  white-space:nowrap;
+}
+.btn:active{transform:translateY(1px) scale(.995)}
+.btn.primary{
+  width:100%;color:#02111f;background:linear-gradient(135deg,#61e0ff,#3c8dff);
+  box-shadow:0 8px 24px rgba(43,140,255,.24);font-weight:700;
+}
+.btn.primary:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(43,140,255,.36)}
+.btn.gold{
+  width:100%;color:#1b1202;background:linear-gradient(135deg,#ffd27a,#ff9d4d);
+  box-shadow:0 8px 24px rgba(255,160,70,.18);font-weight:700;
+}
+.btn.gold:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(255,160,70,.3)}
+.btn.ghost{background:rgba(255,255,255,.025);border:1px solid var(--line);color:var(--muted)}
+.btn.ghost:hover{color:var(--text);border-color:var(--line-strong);background:rgba(255,255,255,.05)}
+.btn.ghost.danger:hover{color:var(--coral);border-color:rgba(255,124,140,.35)}
+.btn.tiny{padding:7px 10px;font-size:10px;border-radius:8px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.row-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.row-actions.single{grid-template-columns:1fr}
+.roll-field{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)}
+.roll-field .muted-line{margin-top:4px;font-size:9px;line-height:1.45}
+#rollRange:disabled{opacity:.35;cursor:not-allowed}
+
+.group-list{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+.group-card{
+  display:flex;align-items:center;gap:9px;padding:8px 9px;
+  border:1px solid rgba(116,174,255,.1);border-radius:11px;background:rgba(255,255,255,.02);
+  transition:border-color .15s,background .15s;
+}
+.group-card:hover{border-color:rgba(116,174,255,.2);background:rgba(255,255,255,.035)}
+.group-dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;box-shadow:0 0 10px currentColor}
+.group-main{flex:1;min-width:0}
+.group-title{font-size:11px;color:#dcecff;display:flex;gap:6px;align-items:baseline}
+.group-title b{font-family:var(--mono);font-weight:500}
+.group-sub{font-size:9px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.group-del{
+  width:22px;height:22px;border:0;background:transparent;color:var(--dim);
+  cursor:pointer;border-radius:6px;font-size:14px;line-height:1;
+}
+.group-del:hover{color:var(--coral);background:rgba(255,124,140,.08)}
+.muted-line{font-size:9px;color:var(--dim);margin-top:9px;letter-spacing:.04em;text-align:right}
+
+details.advanced{
+  border:1px solid rgba(116,174,255,.09);border-radius:10px;padding:0 10px;
+  margin:9px 0;background:rgba(255,255,255,.015);
+}
+details.advanced summary{
+  list-style:none;cursor:pointer;padding:9px 0;font-size:10px;color:var(--muted);
+  letter-spacing:.08em;display:flex;justify-content:space-between;align-items:center;
+}
+details.advanced summary::-webkit-details-marker{display:none}
+details.advanced summary::after{content:"+";color:var(--dim);font-family:var(--mono)}
+details.advanced[open] summary::after{content:"−"}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-bottom:10px}
+.grid-2 label{font-size:9px;color:var(--dim);display:flex;flex-direction:column;gap:4px}
+.grid-2 input,.grid-2 select{
+  width:100%;border:1px solid var(--line);background:rgba(4,10,20,.8);
+  border-radius:7px;color:var(--text);padding:6px 7px;font-size:10px;font-family:var(--mono);
+  appearance:none;-webkit-appearance:none;
+}
+.grid-2 select{background-image:none}
+.grid-2 .wide{grid-column:1/-1}
+.advanced-note{font-size:9px;color:var(--dim);line-height:1.6;padding:0 0 9px}
+
+.radiant-readout{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 10px;
+}
+.radiant-readout div{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:8px 9px;border:1px solid rgba(116,174,255,.1);border-radius:9px;
+  background:rgba(255,255,255,.02);
+}
+.radiant-readout span{font-size:9px;color:var(--dim)}
+.radiant-readout b{font-family:var(--mono);font-size:12px;color:var(--gold);font-weight:500}
+.radiant-mode{
+  display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;
+  font-size:8px;letter-spacing:.08em;color:var(--gold);
+  border:1px solid rgba(255,210,122,.25);background:rgba(255,210,122,.07);
+}
+.shower-meta{font-size:9px;color:var(--dim);line-height:1.6;margin:-4px 0 11px}
+.shower-meta b{color:var(--muted);font-weight:500}
+
+.toggle{display:flex;align-items:center;justify-content:space-between;padding:7px 0;font-size:11px;color:var(--muted);cursor:pointer}
+.toggle input{display:none}
+.toggle .switch{
+  width:30px;height:16px;border-radius:999px;background:rgba(116,174,255,.12);
+  position:relative;transition:background .2s;flex:0 0 30px;
+}
+.toggle .switch::after{
+  content:"";position:absolute;width:12px;height:12px;border-radius:50%;
+  background:#7085a4;top:2px;left:2px;transition:transform .2s,background .2s;
+}
+.toggle input:checked + .switch{background:rgba(94,215,255,.25)}
+.toggle input:checked + .switch::after{transform:translateX(14px);background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.sidebar-footer{font-size:8px;color:var(--dim);line-height:1.8;padding-top:16px;letter-spacing:.03em}
+.sidebar-footer b{color:var(--muted);font-weight:500}
+
+/* ---------- main ---------- */
+#main{
+  position:relative;flex:1;min-width:0;height:100%;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 45%,#071326 0%,#030711 48%,#010206 100%);
+}
+#main::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 70% 30%,rgba(35,90,200,.13),transparent 38%),
+    radial-gradient(circle at 28% 72%,rgba(120,45,160,.08),transparent 40%);
+}
+#main::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at center,transparent 32%,rgba(0,0,0,.55) 100%);
+}
+#skyCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;z-index:1}
+#skyCanvas.dragging{cursor:grabbing}
+#skyCanvas.pointing{cursor:pointer}
+
+.top-actions{position:absolute;top:20px;left:22px;z-index:8;display:flex;gap:8px}
+.icon-btn{
+  width:36px;height:36px;border-radius:10px;border:1px solid var(--line);
+  background:rgba(8,16,30,.65);color:var(--muted);backdrop-filter:blur(12px);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:color .15s,border-color .15s,background .15s,transform .15s;
+  font-size:14px;font-family:var(--mono);
+}
+.icon-btn:hover{color:var(--cyan);border-color:rgba(94,215,255,.35);background:rgba(94,215,255,.08);transform:translateY(-1px)}
+.icon-btn.active{color:var(--cyan);border-color:rgba(94,215,255,.4);background:rgba(94,215,255,.1)}
+
+.metrics{
+  position:absolute;top:20px;right:20px;width:300px;z-index:7;padding:16px;
+  border-radius:18px;background:linear-gradient(160deg,rgba(11,22,42,.84),rgba(4,9,20,.9));
+  border:1px solid var(--line);
+  box-shadow:0 24px 70px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(20px);
+}
+.metric-head{display:flex;justify-content:space-between;align-items:center;font-size:10px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-bottom:13px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.gauge-row{display:flex;align-items:center;gap:14px}
+.gauge{position:relative;width:82px;height:82px;flex:0 0 82px}
+.gauge svg{transform:rotate(-90deg);display:block}
+.gauge .track{stroke:rgba(94,215,255,.1)}
+.gauge .arc{stroke:url(#gaugeGrad);stroke-linecap:round;transition:stroke-dashoffset .5s ease;filter:drop-shadow(0 0 6px rgba(94,215,255,.45))}
+.gauge-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.gauge-label b{font-family:var(--mono);font-size:19px;font-weight:500;letter-spacing:-.04em}
+.gauge-label span{font-size:8px;color:var(--dim);letter-spacing:.12em}
+.gauge-stats{flex:1;min-width:0}
+.big-pct{
+  font-family:var(--mono);font-size:32px;line-height:1;letter-spacing:-.05em;
+  background:linear-gradient(135deg,#e8f8ff,#5ed7ff 60%,#3d8bff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.big-pct small{font-size:14px;color:var(--muted);-webkit-text-fill-color:var(--muted);margin-left:2px}
+.sub-label{font-size:9px;color:var(--dim);margin-top:5px;letter-spacing:.08em}
+.bar{height:4px;border-radius:4px;background:rgba(94,215,255,.1);overflow:hidden;margin-top:9px}
+.bar i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,#3d8bff,#5ed7ff);transition:width .5s ease}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:15px}
+.stat-grid div{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed rgba(116,174,255,.08);padding-bottom:6px}
+.stat-grid span{font-size:9px;color:var(--dim)}
+.stat-grid b{font-family:var(--mono);font-size:11px;color:#cfe6ff;font-weight:500}
+.divider{height:1px;background:rgba(116,174,255,.1);margin:14px 0 12px}
+.sim-head{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;color:var(--muted)}
+.sim-head span:last-child{color:var(--dim);font-size:9px}
+.sim-empty{font-size:10px;color:var(--dim);padding:12px 0 2px;line-height:1.6}
+.sim-numbers{display:flex;align-items:baseline;gap:5px;margin-top:10px}
+.sim-numbers b{font-family:var(--mono);font-size:26px;color:var(--gold);font-weight:500}
+.sim-numbers span{font-size:10px;color:var(--dim)}
+.sim-bar{height:4px;background:rgba(255,210,122,.1);border-radius:4px;overflow:hidden;margin:8px 0}
+.sim-bar i{display:block;height:100%;background:linear-gradient(90deg,#ff9d4d,#ffd27a);border-radius:4px}
+.sim-stats{display:flex;justify-content:space-between;gap:6px;font-size:9px;color:var(--dim)}
+.sim-stats-sub{margin-top:4px;padding-top:5px;border-top:1px solid rgba(255,255,255,.05)}
+.sim-stats-sub b{color:#bcd3ef}
+.sim-stats b{color:#dcecff;font-family:var(--mono);font-weight:500}
+.sim-legend{display:flex;gap:10px;font-size:8px;color:var(--dim);margin-top:7px}
+.sim-legend span{display:flex;align-items:center;gap:4px}
+.sim-legend i{width:8px;height:2px;border-radius:2px;display:inline-block}
+.sim-legend .trail-cam{background:linear-gradient(90deg,#5ed7ff,#ffd27a,#ff7c8c)}
+.sim-note{font-size:8px;color:var(--dim);line-height:1.55;margin-top:7px}
+.sim-actions{display:flex;gap:6px;margin-top:10px}
+.sim-warning{font-size:9px;line-height:1.6;color:var(--coral);margin-top:8px}
+.stale{opacity:.5}
+
+/* ---------- minimap ---------- */
+.mini-card{
+  position:absolute;right:20px;bottom:20px;width:390px;z-index:7;padding:12px;
+  border-radius:18px;background:linear-gradient(160deg,rgba(11,22,42,.84),rgba(4,9,20,.9));
+  border:1px solid var(--line);
+  box-shadow:0 24px 70px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(20px);
+  display:flex;flex-direction:column;gap:8px;
+  transition:width .25s,height .25s,transform .25s;
+}
+.mini-head{display:flex;justify-content:space-between;align-items:center}
+.mini-title{font-size:10px;letter-spacing:.12em;color:#cfe6ff}
+.mini-sub{font-size:8px;color:var(--dim);letter-spacing:.2em;margin-left:6px;font-family:var(--mono)}
+.mini-canvas-wrap{
+  position:relative;width:100%;height:176px;border-radius:10px;overflow:hidden;
+  background:#03070f;border:1px solid rgba(116,174,255,.08);
+}
+#miniCanvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.mini-legend{display:flex;gap:12px;align-items:center;font-size:8px;color:var(--dim);flex-wrap:wrap}
+.mini-legend i{display:inline-block;width:6px;height:6px;border-radius:2px;margin-right:3px}
+.mini-legend .lg-cyan{background:#5ed7ff;box-shadow:0 0 6px rgba(94,215,255,.7)}
+.mini-legend .lg-green{background:#5ee6b0;box-shadow:0 0 6px rgba(94,230,176,.7)}
+.mini-legend .lg-gold{background:#ffd27a;box-shadow:0 0 6px rgba(255,210,122,.7)}
+.mini-legend .lg-coral{background:#ff7c8c;box-shadow:0 0 6px rgba(255,124,140,.7)}
+.mini-legend .lg-violet{background:#b79cff;box-shadow:0 0 6px rgba(183,156,255,.7)}
+.mini-legend .lg-dark{background:#0b1424;border:1px solid rgba(116,174,255,.2)}
+.mini-card.expanded{
+  position:fixed;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);
+  width:min(1080px,92vw);height:auto;max-height:92vh;z-index:80;padding:16px;
+}
+.mini-card.expanded .mini-canvas-wrap{flex:none;height:auto;aspect-ratio:2/1}
+.mini-card.expanded .mini-title{font-size:12px}
+.mini-card.expanded .mini-legend{font-size:9px}
+#mapBackdrop{
+  position:fixed;inset:0;background:rgba(1,4,10,.72);backdrop-filter:blur(6px);
+  z-index:70;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+#mapBackdrop.show{opacity:1;pointer-events:auto}
+
+/* ---------- overlays ---------- */
+.hint{
+  position:absolute;left:50%;bottom:20px;transform:translateX(-50%);z-index:6;
+  display:flex;gap:14px;padding:8px 14px;border-radius:999px;
+  background:rgba(5,11,22,.62);border:1px solid rgba(116,174,255,.1);
+  backdrop-filter:blur(12px);font-size:9px;color:var(--dim);
+  white-space:nowrap;pointer-events:none;
+}
+.hint b{color:var(--muted);font-weight:500}
+.hint .k{
+  display:inline-block;padding:1px 5px;border:1px solid rgba(116,174,255,.16);
+  border-radius:4px;font-family:var(--mono);font-size:8px;color:var(--muted);margin-right:3px;
+}
+.legend{
+  position:absolute;left:22px;bottom:20px;z-index:6;display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:999px;background:rgba(5,11,22,.62);
+  border:1px solid rgba(116,174,255,.1);backdrop-filter:blur(12px);
+  font-size:8px;color:var(--dim);
+}
+.legend .item{display:flex;align-items:center;gap:4px}
+.legend i{width:7px;height:7px;border-radius:2px}
+#tooltip{
+  position:absolute;z-index:30;pointer-events:none;padding:8px 10px;border-radius:9px;
+  background:rgba(4,10,20,.94);border:1px solid var(--line-strong);
+  box-shadow:0 8px 30px rgba(0,0,0,.5);font-size:9px;color:var(--muted);
+  opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s;max-width:230px;
+}
+#tooltip.show{opacity:1;transform:translateY(0)}
+#tooltip b{display:block;color:var(--text);font-family:var(--mono);font-size:11px;margin-bottom:3px}
+#tooltip span{display:block;line-height:1.5}
+
+.modal{
+  position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;
+  background:rgba(1,4,10,.72);backdrop-filter:blur(8px);padding:20px;
+}
+.modal.show{display:flex}
+.modal-card{
+  width:min(660px,92vw);max-height:82vh;overflow-y:auto;padding:24px;border-radius:20px;
+  background:linear-gradient(160deg,rgba(12,24,46,.98),rgba(4,9,20,.98));
+  border:1px solid var(--line-strong);box-shadow:0 30px 100px rgba(0,0,0,.6);
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-head h2{margin:0;font-size:16px;letter-spacing:.08em}
+.modal-head button{
+  width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
+  background:rgba(255,255,255,.03);color:var(--muted);cursor:pointer;font-size:16px;
+}
+.modal-head button:hover{color:var(--coral);border-color:rgba(255,124,140,.3)}
+.framing-btn{width:auto;padding:0 12px;font-size:10px;letter-spacing:.08em}
+.framing-card{
+  width:min(1180px,96vw);max-height:92vh;padding:18px;display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.framing-card .eyebrow{font-size:8px;letter-spacing:.22em;color:var(--dim);font-family:var(--mono)}
+.framing-card .modal-head{margin-bottom:12px}
+.framing-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:9px 14px;margin-bottom:10px}
+.framing-field{display:flex;align-items:center;gap:7px;font-size:10.5px;color:#9fc2e4;flex:0 0 auto}
+.framing-field span{white-space:nowrap;flex:none}
+.framing-field select{
+  height:32px;padding:0 30px 0 10px;border-radius:8px;border:1px solid rgba(94,215,255,.28);
+  background:rgba(8,20,36,.96);color:#e8f4ff;font-size:10.5px;outline:none;cursor:pointer;
+  width:280px;max-width:300px;box-shadow:0 0 0 1px rgba(94,215,255,.05),0 4px 14px rgba(0,0,0,.18);
+  color-scheme:dark;
+}
+.framing-field select:hover{border-color:rgba(94,215,255,.55)}
+.framing-field select:focus{border-color:rgba(94,215,255,.75);box-shadow:0 0 0 2px rgba(94,215,255,.12)}
+.framing-field select option,.framing-field select optgroup{background:#08111f;color:#dcecff;font-size:12px}
+.framing-field select option:checked{background:#123a5a;color:#ffffff}
+.framing-field select optgroup{color:#8fb7e0;font-weight:600}
+.framing-toolbar .toggle{width:auto;gap:8px;padding:0;font-size:10px}
+.framing-zoom{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--muted)}
+.framing-zoom input[type=range]{width:104px;accent-color:var(--cyan)}
+.framing-zoom b{font-family:var(--mono);font-size:9px;color:var(--cyan);font-weight:400;min-width:42px}
+.framing-hint{font-size:9px;color:var(--dim);margin-left:auto}
+.framing-canvas-wrap{
+  position:relative;flex:1;min-height:300px;height:clamp(320px,56vh,620px);
+  border-radius:14px;overflow:hidden;border:1px solid var(--line-strong);
+  background:radial-gradient(ellipse at 50% 45%,#071426 0%,#02060e 68%);
+}
+#framingCanvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#framingCanvas.dragging{cursor:grabbing}
+.framing-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 14px;margin-top:9px;font-size:9px;color:var(--dim);line-height:1.5}
+.framing-foot span:last-child{text-align:right}
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.help-item{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02)}
+.help-item b{display:block;font-size:11px;color:#dcecff;margin-bottom:5px}
+.help-item p{margin:0;font-size:10px;color:var(--muted);line-height:1.7}
+.help-note{margin-top:14px;padding:11px 12px;border-radius:10px;background:rgba(94,215,255,.05);border:1px solid rgba(94,215,255,.12);font-size:9px;color:var(--muted);line-height:1.75}
+.help-note b{color:var(--cyan);font-weight:500}
+#toast{
+  position:fixed;left:50%;bottom:80px;transform:translate(-50%,10px);z-index:100;
+  padding:9px 16px;border-radius:999px;background:rgba(8,18,34,.95);
+  border:1px solid var(--line-strong);color:var(--text);font-size:10px;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+  box-shadow:0 12px 40px rgba(0,0,0,.5);white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#mobileToggle{display:none}
+.sidebar-close{display:none;position:absolute;top:14px;right:14px;z-index:3}
+#sidebarBackdrop{display:none;position:fixed;inset:0;z-index:19;background:rgba(1,4,10,.65);backdrop-filter:blur(3px)}
+
+@media (max-width:1400px){
+  .metrics{width:250px;padding:14px}
+  .mini-card{width:300px}
+  .mini-canvas-wrap{height:145px}
+}
+@media (max-width:1050px){
+  #sidebar{
+    position:fixed;left:0;top:0;bottom:0;width:344px;transform:translateX(-105%);
+    transition:transform .28s ease;box-shadow:30px 0 80px rgba(0,0,0,.6);
+  }
+  #sidebar.open{transform:translateX(0)}
+  #sidebarBackdrop.show{display:block}
+  #mobileToggle{display:flex}
+  .sidebar-close{display:flex}
+  .top-actions{left:64px}
+  .metrics{width:250px}
+  .mini-card{width:280px}
+  .mini-canvas-wrap{height:138px}
+}
+@media (max-width:900px){
+  .metrics{width:222px;padding:12px}
+  .gauge{width:62px;height:62px;flex-basis:62px}
+  .big-pct{font-size:25px}
+}
+@media (max-width:720px){
+  .metrics{top:62px;right:12px;width:222px;padding:12px}
+  .gauge{width:62px;height:62px;flex-basis:62px}
+  .big-pct{font-size:25px}
+  .stat-grid{gap:6px 8px}
+  .stat-grid span{font-size:8px}
+  .stat-grid b{font-size:10px}
+  .mini-card{right:12px;bottom:12px;width:240px;padding:9px}
+  .mini-canvas-wrap{height:120px}
+  .mini-legend{font-size:7px;gap:8px}
+  .legend,.hint{display:none}
+  .top-actions{top:12px;left:60px}
+  .help-grid{grid-template-columns:1fr}
+  .metric-head{font-size:9px}
+  .framing-card{width:100%;height:100%;max-height:none;border-radius:0;padding:12px}
+  .framing-toolbar{gap:8px 10px}
+  .framing-field{width:100%}
+  .framing-field select{max-width:none;flex:1}
+  .framing-hint{display:none}
+  .framing-canvas-wrap{height:auto;min-height:0;flex:1}
+  .framing-foot{display:block;font-size:8px}
+  .framing-foot span{display:block}
+  .framing-foot span:last-child{text-align:left;margin-top:3px}
+}
+@media (max-width:480px){
+  .metrics{width:196px}
+  .gauge-row{gap:8px}
+  .gauge{width:54px;height:54px;flex-basis:54px}
+  .gauge-label b{font-size:14px}
+  .big-pct{font-size:21px}
+  .mini-card{width:220px}
+  .mini-canvas-wrap{height:106px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div>
+        <h1>流星模拟 By尾羽</h1>
+        <p>Meteor Sky · 360° Planner</p>
+      </div>
+    </div>
+    <button id="sidebarClose" class="icon-btn sidebar-close" aria-label="关闭控制台" title="关闭">×</button>
+
+    <section class="section">
+      <div class="section-head"><span class="cn">镜头配置</span><span class="en">LENSES</span></div>
+
+      <div class="field">
+        <div class="field-label"><span>焦距</span><span class="focal-edit"><input id="focalInput" class="focal-input" type="number" min="10" max="200" step="1" value="14" inputmode="numeric" aria-label="焦距毫米数" title="可直接输入 10–200mm"><span class="unit">mm</span></span></div>
+        <input id="focalRange" type="range" min="10" max="200" step="1" value="14" aria-label="焦距">
+        <div class="chips" id="focalChips">
+          <button class="chip" data-focal="10">10</button>
+          <button class="chip active" data-focal="14">14</button>
+          <button class="chip" data-focal="20">20</button>
+          <button class="chip" data-focal="24">24</button>
+          <button class="chip" data-focal="35">35</button>
+          <button class="chip" data-focal="50">50</button>
+          <button class="chip" data-focal="85">85</button>
+          <button class="chip" data-focal="135">135</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>传感器</span></div>
+        <select id="sensorSelect" aria-label="传感器尺寸">
+          <option value="ff">全画幅 · 36 × 24 mm</option>
+          <option value="apsc">APS-C · 23.5 × 15.6 mm</option>
+          <option value="m43">M4/3 · 17.3 × 13 mm</option>
+          <option value="mf">中画幅 · 44 × 33 mm</option>
+          <option value="one">1 英寸 · 13.2 × 8.8 mm</option>
+        </select>
+      </div>
+
+      <div class="fov-readout">
+        <div><span>水平 FOV</span><b id="hfov">104.3°</b></div>
+        <div><span>垂直 FOV</span><b id="vfov">81.2°</b></div>
+        <div><span>对角 FOV</span><b id="dfov">114.2°</b></div>
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>数量</span><span class="unit">台 / 组</span></div>
+        <div class="stepper">
+          <button id="countMinus" aria-label="减少数量">−</button>
+          <input id="countInput" type="number" min="1" max="24" value="3" aria-label="镜头数量">
+          <button id="countPlus" aria-label="增加数量">+</button>
+        </div>
+      </div>
+
+      <button id="addGroupBtn" class="btn primary">＋ 添加镜头组</button>
+      <div class="row-actions single">
+        <button id="clearBtn" class="btn ghost danger">清空全部</button>
+      </div>
+
+      <div id="groupList" class="group-list"></div>
+      <div id="totalLenses" class="muted-line">共 6 台相机</div>
+
+      <div class="field roll-field">
+        <div class="field-label"><span>画幅旋转</span><span><b id="rollVal">0°</b><span class="unit">ROLL</span></span></div>
+        <input id="rollRange" type="range" min="-180" max="180" step="1" value="0" disabled aria-label="画幅旋转">
+        <div id="rollHint" class="muted-line">点选天球上的镜头后旋转画幅</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><span class="cn">流星雨</span><span class="en">SHOWER</span></div>
+
+      <div class="field">
+        <div class="field-label"><span>流星雨</span><span id="radiantMode" class="radiant-mode" style="display:none">手动</span></div>
+        <select id="showerSelect" aria-label="流星雨">
+          <option value="geminids">双子座流星雨 · Geminids</option>
+          <option value="perseids">英仙座流星雨 · Perseids</option>
+          <option value="quadrantids">象限仪座流星雨 · Quadrantids</option>
+          <option value="lyrids">天琴座流星雨 · Lyrids</option>
+          <option value="orionids">猎户座流星雨 · Orionids</option>
+          <option value="leonids">狮子座流星雨 · Leonids</option>
+          <option value="etaaquariids">宝瓶座η流星雨 · Eta Aquariids</option>
+          <option value="draconids">天龙座流星雨 · Draconids</option>
+          <option value="custom">自定义辐射点 · Custom</option>
+        </select>
+      </div>
+      <div id="showerMeta" class="shower-meta">ZHR <b>150</b> · 峰值 <b>12月14日</b> · 辐射点 <b>RA 7h28m / Dec +32°</b></div>
+
+      <div class="field">
+        <div class="field-label"><span>流星分布</span><span class="unit">MODEL</span></div>
+        <select id="meteorModelSelect" aria-label="流星分布模型">
+          <option value="realistic" selected>模拟真实流量 · 辐射点集中</option>
+          <option value="uniform">均匀分布 · 流星均匀分布在天球</option>
+        </select>
+      </div>
+
+      <div class="radiant-readout">
+        <div><span>辐射点高度</span><b id="radiantAlt">51.2°</b></div>
+        <div><span>方位角</span><b id="radiantAz">86.0°</b></div>
+      </div>
+
+      <div class="field">
+        <div class="field-label"><span>高度 ALT</span><span><b id="radiantAltVal">51</b><span class="unit">°</span></span></div>
+        <input id="radiantAltRange" type="range" min="-90" max="90" step="1" value="51" aria-label="辐射点高度">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>方位 AZ</span><span><b id="radiantAzVal">86</b><span class="unit">°</span></span></div>
+        <input id="radiantAzRange" type="range" min="0" max="359" step="1" value="86" aria-label="辐射点方位">
+      </div>
+
+      <details class="advanced" id="obsDetails">
+        <summary>观测地点与时间</summary>
+        <div class="grid-2">
+          <label>纬度 LAT<input id="latInput" type="number" value="40.0" step="0.1" min="-90" max="90"></label>
+          <label>经度 LON<input id="lonInput" type="number" value="116.0" step="0.1" min="-180" max="180"></label>
+          <label class="wide">日期 / 时间<input id="dtInput" type="datetime-local" value="2026-12-14T23:00"></label>
+          <label class="wide">时区<select id="tzSelect">
+            <option value="8" selected>UTC+8 · 中国标准时间</option>
+            <option value="0">UTC+0 · 世界时</option>
+            <option value="9">UTC+9 · 日本 / 韩国</option>
+            <option value="7">UTC+7 · 东南亚</option>
+            <option value="-5">UTC−5 · 美东</option>
+            <option value="-8">UTC−8 · 美西</option>
+            <option value="1">UTC+1 · 中欧</option>
+            <option value="5.5">UTC+5:30 · 印度</option>
+          </select></label>
+        </div>
+        <div class="advanced-note">辐射点按恒星时换算；默认北京 · 2026-12-14 23:00。手动拖动后，地点/时间不再自动覆盖。</div>
+        <button id="recalcBtn" class="btn ghost tiny" style="margin-bottom:10px">按地点 / 时间重新计算</button>
+      </details>
+
+      <div class="field">
+        <div class="field-label"><span>模拟流星数</span><span><b id="meteorCountVal">500</b><span class="unit">颗</span></span></div>
+        <input id="meteorCountRange" type="range" min="100" max="2000" step="100" value="500" aria-label="模拟流星数">
+      </div>
+
+      <button id="simulateBtn" class="btn gold">✦ 开始流星模拟</button>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><span class="cn">显示</span><span class="en">DISPLAY</span></div>
+      <label class="toggle"><span>星点</span><input id="showStars" type="checkbox" checked><span class="switch"></span></label>
+      <label class="toggle"><span>星座</span><input id="showConstellations" type="checkbox" checked><span class="switch"></span></label>
+      <label class="toggle"><span>银河</span><input id="showMilkyWay" type="checkbox" checked><span class="switch"></span></label>
+      <label class="toggle"><span>地平 / 方位网格</span><input id="showGrid" type="checkbox" checked><span class="switch"></span></label>
+      <label class="toggle"><span>覆盖热图</span><input id="showHeat" type="checkbox" checked><span class="switch"></span></label>
+      <label class="toggle"><span>流星动画</span><input id="showMeteors" type="checkbox" checked><span class="switch"></span></label>
+      <label class="toggle"><span>轨迹常驻</span><input id="persistTrails" type="checkbox" checked><span class="switch"></span></label>
+    </section>
+
+    <div class="sidebar-footer">
+      <b>主天球：直线投影</b> · 仅统计地平线以上可见天区<br>
+      构图窗口支持 15 种投影：常规 / 鱼眼 / 横向 / 小星球 · 本地计算
+    </div>
+  </aside>
+
+  <main id="main">
+    <canvas id="skyCanvas"></canvas>
+
+    <div class="top-actions">
+      <button id="mobileToggle" class="icon-btn" aria-label="打开控制台" title="控制台">☰</button>
+      <button id="resetViewBtn" class="icon-btn" aria-label="重置视角" title="重置视角">↺</button>
+      <button id="framingBtn" class="icon-btn framing-btn" aria-label="打开构图窗口" title="构图窗口">构图</button>
+      <button id="helpBtn" class="icon-btn" aria-label="使用说明" title="使用说明">?</button>
+    </div>
+
+    <div class="metrics" id="metricsCard">
+      <div class="metric-head"><span>覆盖分析 / COVERAGE</span><span class="live-dot"></span></div>
+      <div class="gauge-row">
+        <div class="gauge">
+          <svg width="82" height="82" viewBox="0 0 82 82" aria-hidden="true">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#5ed7ff"/>
+                <stop offset="55%" stop-color="#3d8bff"/>
+                <stop offset="100%" stop-color="#ffd27a"/>
+              </linearGradient>
+            </defs>
+            <circle class="track" cx="41" cy="41" r="34" fill="none" stroke-width="6"/>
+            <circle id="gaugeArc" class="arc" cx="41" cy="41" r="34" fill="none" stroke-width="6"
+              stroke-dasharray="213.63" stroke-dashoffset="213.63"/>
+          </svg>
+          <div class="gauge-label"><b id="gaugePct">0</b><span>SKY</span></div>
+        </div>
+        <div class="gauge-stats">
+          <div class="big-pct"><span id="coveragePct">0.0</span><small>%</small></div>
+          <div class="sub-label">可见天区覆盖率</div>
+          <div class="bar"><i id="coverageBar"></i></div>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div><span>未覆盖</span><b id="uncoveredPct">100.0%</b></div>
+        <div><span>重叠区</span><b id="overlapPct">0.0%</b></div>
+        <div><span>平均层数</span><b id="avgLayers">0.0×</b></div>
+        <div><span>相机</span><b id="cameraCount">0</b></div>
+        <div><span>天顶 ≥60°</span><b id="zenithPct">0.0%</b></div>
+        <div><span>地平 ≤15°</span><b id="horizonPct">0.0%</b></div>
+      </div>
+      <div class="divider"></div>
+      <div class="sim-head"><span>流星模拟 / CAPTURE</span><span id="simStatus">未运行</span></div>
+      <div id="simBody">
+        <div class="sim-empty">运行模拟，估算当前镜头布局能拍到多少颗流星。</div>
+      </div>
+    </div>
+
+    <div class="mini-card" id="miniCard">
+      <div class="mini-head">
+        <div><span class="mini-title">全天展开图</span><span class="mini-sub">ALL-SKY</span></div>
+        <button id="expandMapBtn" class="icon-btn" style="width:28px;height:28px;font-size:12px" aria-label="展开全天图" title="展开全天图">⤢</button>
+      </div>
+      <div class="mini-canvas-wrap"><canvas id="miniCanvas"></canvas></div>
+      <div class="mini-legend">
+        <span><i class="lg-cyan"></i>1 台</span>
+        <span><i class="lg-green"></i>2 台</span>
+        <span><i class="lg-gold"></i>3 台</span>
+        <span><i class="lg-coral"></i>4 台</span>
+        <span><i class="lg-violet"></i>5 台+</span>
+        <span><i style="background:rgba(255,94,108,.55);border:1px solid rgba(255,124,140,.4)"></i>盲区</span>
+        <span><i class="lg-dark"></i>地平线下</span>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="item"><i style="background:#5ed7ff;box-shadow:0 0 6px rgba(94,215,255,.7)"></i>1 台</span>
+      <span class="item"><i style="background:#5ee6b0;box-shadow:0 0 6px rgba(94,230,176,.7)"></i>2 台</span>
+      <span class="item"><i style="background:#ffd27a;box-shadow:0 0 6px rgba(255,210,122,.7)"></i>3 台</span>
+      <span class="item"><i style="background:#ff7c8c;box-shadow:0 0 6px rgba(255,124,140,.7)"></i>4 台</span>
+      <span class="item"><i style="background:#b79cff;box-shadow:0 0 6px rgba(183,156,255,.7)"></i>5 台+</span>
+      <span class="item"><i style="background:rgba(255,94,108,.5);border:1px solid rgba(255,124,140,.45)"></i>盲区</span>
+    </div>
+
+    <div class="hint">
+      <span><span class="k">拖动</span>旋转天球</span>
+      <span><span class="k">滚轮</span>缩放</span>
+      <span><span class="k">拖镜头点</span>调整指向</span>
+    </div>
+
+    <div id="tooltip"></div>
+    <div id="toast"></div>
+  </main>
+</div>
+
+<div id="mapBackdrop"></div>
+<div id="sidebarBackdrop"></div>
+
+<div class="modal" id="helpModal">
+  <div class="modal-card">
+    <div class="modal-head"><h2>使用说明</h2><button id="closeHelpBtn" aria-label="关闭">×</button></div>
+    <div class="help-grid">
+      <div class="help-item"><b>自由观察天球</b><p>拖动天球旋转视角，滚轮缩放。天球上的半透明网格是地平线与方位；地平线以下被压暗，不计入覆盖统计。显示区可分别开关星点、星座和银河。</p></div>
+      <div class="help-item"><b>添加镜头组</b><p>选择焦距（也可直接在数值框输入 10–200mm）、传感器和数量，点击“添加镜头组”。新镜头会出现在当前视角附近，手动拖动到需要的方向即可，不再自动优化排布。</p></div>
+      <div class="help-item"><b>拖动镜头</b><p>直接拖动天球上的彩色镜头点，或在右下角全天展开图中拖动。拖动会实时更新覆盖热图、盲区与重叠区。</p></div>
+      <div class="help-item"><b>读覆盖图</b><p>青色 = 1 台覆盖，绿色 = 2 台，金色 = 3 台，红色 = 4 台，紫色 = 5 台以上。颜色越暖，冗余越高；暗红区就是盲区。</p></div>
+      <div class="help-item"><b>流星模拟</b><p>按辐射点生成流星轨迹，逐条检查是否落入任意镜头视场。可在“流星分布”中选择真实流量（近辐射点更密）或均匀分布（流星均匀分布在天球，但仍沿辐射点方向出发）；轨迹会常驻画面，颜色对应捕捉相机，红色为漏拍。模拟流星数越多，天球上保留的代表轨迹也越多。结果中的“完整轨迹 / 断轨”按可见段是否全部覆盖、中间是否有缺口统计。</p></div>
+      <div class="help-item"><b>旋转画幅</b><p>点选天球上的镜头后，拖动侧栏“画幅旋转”滑杆可旋转构图；也可以按住 Shift 直接拖动镜头旋转。旋转会改变画幅方向、覆盖范围和流星是否被完整拍到，适合微调构图。</p></div>
+      <div class="help-item"><b>构图窗口</b><p>点顶部“构图”打开。投影下拉列表按常规 / 鱼眼 / 横向 / 特殊分组，包含直线、圆柱形、等距离长方圆柱、圆形鱼眼、球形鱼眼、立体、立体感下来、墨卡托、Vedutismo、横向等长的、横向圆柱形、横向墨卡托、横向 Vedutismo、小星球与正交球。相机框显示各镜头构图范围，模拟后的代表轨迹会保留在窗口中。点击构图框可选中并显示三分线，双击可直接对准该镜头，也可一键对准辐射点或选中镜头；支持拖动旋转、滚轮缩放，并导出 PNG。</p></div>
+      <div class="help-item"><b>作者：尾羽</b><p>小红书：6374050759 欢迎关注和讨论</p></div>
+    </div>
+    <div class="help-note"><b>模型说明</b>：镜头视场按直线投影（rectilinear）计算，使用传感器画幅与焦距推导水平/垂直视场；广角镜头边缘为球面大圆弧。鱼眼镜头、地形遮挡、云量、月光与相机热噪声未计入。覆盖率为地平线以上可见天区的等面积采样估计；“天顶 ≥60°”和“地平 ≤15°”为分层覆盖率。</div>
+  </div>
+</div>
+
+<div class="modal" id="framingModal">
+  <div class="modal-card framing-card">
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow">FRAMING PREVIEW</span>
+        <h2>构图窗口</h2>
+      </div>
+      <button id="closeFramingBtn" aria-label="关闭">×</button>
+    </div>
+    <div class="framing-toolbar">
+      <label class="framing-field"><span>投影模式</span>
+        <select id="framingProjection" aria-label="构图投影" title="选择构图投影">
+          <optgroup label="常规">
+            <option value="rectilinear">直线 Rectilinear</option>
+            <option value="cylindrical">圆柱形 Cylindrical</option>
+            <option value="equirect">等距离长方圆柱 Equirectangular</option>
+            <option value="stereographic" selected>立体 Stereographic</option>
+            <option value="stereographicDown">立体感下来 Stereographic Down</option>
+            <option value="mercator">墨卡托 Mercator</option>
+            <option value="vedutismo">Vedutismo</option>
+            <option value="orthographic">正交球 Orthographic</option>
+          </optgroup>
+          <optgroup label="鱼眼">
+            <option value="fisheyeCircular">圆形鱼眼 Circular Fisheye</option>
+            <option value="fisheyeSpherical">球形鱼眼 Spherical Fisheye</option>
+          </optgroup>
+          <optgroup label="横向">
+            <option value="transverseEquirect">横向等长的 Transverse Equirectangular</option>
+            <option value="transverseCylindrical">横向圆柱形 Transverse Cylindrical</option>
+            <option value="transverseMercator">横向墨卡托 Transverse Mercator</option>
+            <option value="transverseVedutismo">横向 Vedutismo</option>
+          </optgroup>
+          <optgroup label="特殊">
+            <option value="littlePlanet">小星球 Little Planet</option>
+          </optgroup>
+        </select>
+      </label>
+      <label class="toggle"><span>星空</span><input id="framingSky" type="checkbox" checked><span class="switch"></span></label>
+      <label class="toggle"><span>网格</span><input id="framingGrid" type="checkbox" checked><span class="switch"></span></label>
+      <label class="toggle"><span>三分线</span><input id="framingGuides" type="checkbox" checked><span class="switch"></span></label>
+      <label class="framing-zoom"><span>缩放</span><input id="framingZoom" type="range" min="0.45" max="3" step="0.05" value="1"><b id="framingZoomVal">1.00×</b></label>
+      <button id="framingRadiantBtn" class="btn ghost tiny" title="把视角中心对准辐射点">对准辐射点</button>
+      <button id="framingSelectedBtn" class="btn ghost tiny" title="把视角中心对准选中的构图框">对准选中</button>
+      <button id="framingResetBtn" class="btn ghost tiny">重置视角</button>
+      <button id="framingExportBtn" class="btn ghost tiny">导出 PNG</button>
+      <span class="framing-hint">拖动旋转 · 滚轮缩放 · 点击选中 · 双击对准</span>
+    </div>
+    <div class="framing-canvas-wrap"><canvas id="framingCanvas"></canvas></div>
+    <div class="framing-foot">
+      <span id="framingMeta">—</span>
+      <span>相机框 = 该镜头构图范围 · 轨迹颜色对应捕捉相机 · 红色为漏拍 · 虚线为断轨 · 点击选中 / 双击对准</span>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="mapModalPlaceholder" style="display:none"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------------------------------------------------------------------------
+  // constants & tiny math helpers
+  // ---------------------------------------------------------------------------
+  const DEG = Math.PI / 180;
+  const RAD = 180 / Math.PI;
+  const TAU = Math.PI * 2;
+  const WORLD_UP = [0, 1, 0];
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const cross = (a, b) => [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0]
+  ];
+  const mul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+  const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const vlen = a => Math.hypot(a[0], a[1], a[2]);
+  const vnorm = a => {
+    const l = vlen(a);
+    return l > 1e-12 ? [a[0] / l, a[1] / l, a[2] / l] : [0, 1, 0];
+  };
+  const fmt = (v, d = 1) => (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d);
+
+  function slerp(a, b, t) {
+    const d = clamp(dot(a, b), -1, 1);
+    const omega = Math.acos(d);
+    if (omega < 1e-6) return vnorm(add(mul(a, 1 - t), mul(b, t)));
+    const s = Math.sin(omega);
+    return add(mul(a, Math.sin((1 - t) * omega) / s), mul(b, Math.sin(t * omega) / s));
+  }
+
+  function dirFromAltAz(alt, az) {
+    const a = alt * DEG, z = az * DEG;
+    return [Math.cos(a) * Math.sin(z), Math.sin(a), Math.cos(a) * Math.cos(z)];
+  }
+
+  function altAzFromDir(d) {
+    const alt = Math.asin(clamp(d[1], -1, 1)) * RAD;
+    let az = Math.atan2(d[0], d[2]) * RAD;
+    if (az < 0) az += 360;
+    return { alt, az };
+  }
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rr);
+    ctx.arcTo(x + w, y + h, x, y + h, rr);
+    ctx.arcTo(x, y + h, x, y, rr);
+    ctx.arcTo(x, y, x + w, y, rr);
+    ctx.closePath();
+  }
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  const rand = mulberry32(0x5EED2026);
+  function randn() {
+    let u = 0, v = 0;
+    while (u === 0) u = rand();
+    while (v === 0) v = rand();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v);
+  }
+
+  function popcount(x) {
+    x = x - ((x >>> 1) & 0x55555555);
+    x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+    x = (x + (x >>> 4)) & 0x0F0F0F0F;
+    return (x * 0x01010101) >>> 24;
+  }
+
+  function rgba(rgb, a) {
+    return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
+  }
+
+  // ---------------------------------------------------------------------------
+  // optical & shower catalogues
+  // ---------------------------------------------------------------------------
+  const SENSORS = {
+    ff:   { key: 'ff',   name: '全画幅', w: 36,   h: 24 },
+    apsc: { key: 'apsc', name: 'APS-C',  w: 23.5, h: 15.6 },
+    m43:  { key: 'm43',  name: 'M4/3',   w: 17.3, h: 13 },
+    mf:   { key: 'mf',   name: '中画幅', w: 44,   h: 33 },
+    one:  { key: 'one',  name: '1 英寸', w: 13.2, h: 8.8 }
+  };
+
+  const SHOWERS = {
+    geminids:     { name: '双子座流星雨', en: 'Geminids',     ra: 112.0, dec: 32.3, zhr: 150, peak: '12月14日', meta: 'RA 7h28m / Dec +32°' },
+    perseids:     { name: '英仙座流星雨', en: 'Perseids',     ra: 48.3,  dec: 58.1, zhr: 100, peak: '8月12日',  meta: 'RA 3h13m / Dec +58°' },
+    quadrantids:  { name: '象限仪座流星雨', en: 'Quadrantids', ra: 230.0, dec: 49.0, zhr: 120, peak: '1月3日',   meta: 'RA 15h20m / Dec +49°' },
+    lyrids:       { name: '天琴座流星雨', en: 'Lyrids',       ra: 272.5, dec: 34.0, zhr: 18,  peak: '4月22日',  meta: 'RA 18h10m / Dec +34°' },
+    orionids:     { name: '猎户座流星雨', en: 'Orionids',     ra: 95.0,  dec: 16.0, zhr: 20,  peak: '10月21日', meta: 'RA 6h20m / Dec +16°' },
+    leonids:      { name: '狮子座流星雨', en: 'Leonids',      ra: 154.3, dec: 21.7, zhr: 15,  peak: '11月17日', meta: 'RA 10h17m / Dec +22°' },
+    etaaquariids: { name: '宝瓶座η流星雨', en: 'Eta Aquariids', ra: 338.0, dec: -1.0, zhr: 50, peak: '5月6日',  meta: 'RA 22h32m / Dec −1°' },
+    draconids:    { name: '天龙座流星雨', en: 'Draconids',    ra: 262.0, dec: 54.0, zhr: 10,  peak: '10月8日',  meta: 'RA 17h28m / Dec +54°' }
+  };
+
+  const METEOR_MODELS = {
+    realistic: { short: '真实流量', label: '模拟真实流量 · 辐射点集中' },
+    uniform:   { short: '均匀分布', label: '均匀分布 · 流星均匀分布在天球' }
+  };
+
+  const GROUP_COLORS = [
+    { hex: '#5ed7ff', rgb: [94, 215, 255] },
+    { hex: '#ffd27a', rgb: [255, 210, 122] },
+    { hex: '#ff7c8c', rgb: [255, 124, 140] },
+    { hex: '#5ee6b0', rgb: [94, 230, 176] },
+    { hex: '#b79cff', rgb: [183, 156, 255] },
+    { hex: '#ff9d4d', rgb: [255, 157, 77] },
+    { hex: '#7aa7ff', rgb: [122, 167, 255] },
+    { hex: '#ff6ec7', rgb: [255, 110, 199] }
+  ];
+
+  const COVER_RGB = {
+    1: [94, 215, 255],
+    2: [94, 230, 176],
+    3: [255, 210, 122],
+    4: [255, 124, 140],
+    5: [183, 156, 255]
+  };
+
+  // ---------------------------------------------------------------------------
+  // app state
+  // ---------------------------------------------------------------------------
+  const QUERY = new URLSearchParams(location.search);
+  const STATIC_MODE = QUERY.has('static');
+
+  const state = {
+    cameras: [],
+    groups: [],
+    nextCamId: 1,
+    nextGroupId: 1,
+    viewYaw: 92,
+    viewPitch: 34,
+    zoom: 1,
+    selectedId: null,
+    hoverId: null,
+    radiant: { alt: 51.2, az: 86.0 },
+    shower: 'geminids',
+    manualRadiant: false,
+    lat: 40.0,
+    lon: 116.0,
+    tz: 8,
+    datetime: '2026-12-14T23:00',
+    showStars: true,
+    showConstellations: true,
+    showMilkyWay: true,
+    showGrid: true,
+    showHeat: true,
+    showMeteors: true,
+    persistTrails: true,
+    meteorCount: 500,
+    meteorModel: 'realistic',
+    results: null,
+    anim: null,
+    animMeteors: null,
+    coverageDirty: true,
+    heatDirty: true,
+    miniDirty: true,
+    metricsDirty: true,
+    interacting: false,
+    heatQuality: 1,
+    time: 0,
+    viewDir: [0, 0, 1],
+    viewRight: [1, 0, 0],
+    viewUp: [0, 1, 0],
+    globeCX: 0,
+    globeCY: 0,
+    globeR: 0,
+    canvasW: 0,
+    canvasH: 0,
+    miniW: 0,
+    miniH: 0
+  };
+
+  const framing = {
+    open: false,
+    projection: 'stereographic',
+    yaw: state.viewYaw,
+    pitch: state.viewPitch,
+    zoom: 1,
+    showSky: true,
+    showGrid: true,
+    showGuides: true,
+    drag: null,
+    raf: 0,
+    W: 0,
+    H: 0
+  };
+
+  // ---------------------------------------------------------------------------
+  // DOM
+  // ---------------------------------------------------------------------------
+  const $ = id => document.getElementById(id);
+  const el = {
+    sidebar: $('sidebar'),
+    sidebarBackdrop: $('sidebarBackdrop'),
+    main: $('main'),
+    skyCanvas: $('skyCanvas'),
+    miniCanvas: $('miniCanvas'),
+    miniCard: $('miniCard'),
+    mapBackdrop: $('mapBackdrop'),
+    focalRange: $('focalRange'),
+    focalInput: $('focalInput'),
+    focalChips: $('focalChips'),
+    sensorSelect: $('sensorSelect'),
+    hfov: $('hfov'),
+    vfov: $('vfov'),
+    dfov: $('dfov'),
+    countInput: $('countInput'),
+    countMinus: $('countMinus'),
+    countPlus: $('countPlus'),
+    addGroupBtn: $('addGroupBtn'),
+    clearBtn: $('clearBtn'),
+    groupList: $('groupList'),
+    totalLenses: $('totalLenses'),
+    rollRange: $('rollRange'),
+    rollVal: $('rollVal'),
+    rollHint: $('rollHint'),
+    showerSelect: $('showerSelect'),
+    showerMeta: $('showerMeta'),
+    meteorModelSelect: $('meteorModelSelect'),
+    radiantMode: $('radiantMode'),
+    radiantAlt: $('radiantAlt'),
+    radiantAz: $('radiantAz'),
+    radiantAltRange: $('radiantAltRange'),
+    radiantAzRange: $('radiantAzRange'),
+    radiantAltVal: $('radiantAltVal'),
+    radiantAzVal: $('radiantAzVal'),
+    latInput: $('latInput'),
+    lonInput: $('lonInput'),
+    dtInput: $('dtInput'),
+    tzSelect: $('tzSelect'),
+    recalcBtn: $('recalcBtn'),
+    meteorCountRange: $('meteorCountRange'),
+    meteorCountVal: $('meteorCountVal'),
+    simulateBtn: $('simulateBtn'),
+    showStars: $('showStars'),
+    showConstellations: $('showConstellations'),
+    showMilkyWay: $('showMilkyWay'),
+    showGrid: $('showGrid'),
+    showHeat: $('showHeat'),
+    showMeteors: $('showMeteors'),
+    persistTrails: $('persistTrails'),
+    coveragePct: $('coveragePct'),
+    uncoveredPct: $('uncoveredPct'),
+    overlapPct: $('overlapPct'),
+    avgLayers: $('avgLayers'),
+    cameraCount: $('cameraCount'),
+    zenithPct: $('zenithPct'),
+    horizonPct: $('horizonPct'),
+    gaugeArc: $('gaugeArc'),
+    gaugePct: $('gaugePct'),
+    coverageBar: $('coverageBar'),
+    simStatus: $('simStatus'),
+    simBody: $('simBody'),
+    resetViewBtn: $('resetViewBtn'),
+    helpBtn: $('helpBtn'),
+    helpModal: $('helpModal'),
+    closeHelpBtn: $('closeHelpBtn'),
+    framingBtn: $('framingBtn'),
+    framingModal: $('framingModal'),
+    framingCanvas: $('framingCanvas'),
+    framingProjection: $('framingProjection'),
+    framingSky: $('framingSky'),
+    framingGrid: $('framingGrid'),
+    framingGuides: $('framingGuides'),
+    framingZoom: $('framingZoom'),
+    framingZoomVal: $('framingZoomVal'),
+    framingMeta: $('framingMeta'),
+    framingRadiantBtn: $('framingRadiantBtn'),
+    framingSelectedBtn: $('framingSelectedBtn'),
+    framingResetBtn: $('framingResetBtn'),
+    framingExportBtn: $('framingExportBtn'),
+    closeFramingBtn: $('closeFramingBtn'),
+    expandMapBtn: $('expandMapBtn'),
+    tooltip: $('tooltip'),
+    toast: $('toast'),
+    mobileToggle: $('mobileToggle'),
+    sidebarClose: $('sidebarClose')
+  };
+
+  const skyCtx = el.skyCanvas.getContext('2d', { alpha: true });
+  const miniCtx = el.miniCanvas.getContext('2d', { alpha: true });
+  const framingCtx = el.framingCanvas.getContext('2d', { alpha: true });
+
+  // ---------------------------------------------------------------------------
+  // sky sampling grid & coverage
+  // ---------------------------------------------------------------------------
+  const GRID_W = 360;
+  const GRID_H = 180;
+  const coverageGrid = new Uint8Array(GRID_W * GRID_H);
+  const miniCoverageCanvas = document.createElement('canvas');
+  miniCoverageCanvas.width = GRID_W;
+  miniCoverageCanvas.height = GRID_H;
+  const miniCoverageCtx = miniCoverageCanvas.getContext('2d');
+
+  function makeSkySamples(n) {
+    const out = [];
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < n; i++) {
+      const y = 1 - (i + 0.5) * 2 / n;
+      if (y < 0) continue;
+      const r = Math.sqrt(Math.max(0, 1 - y * y));
+      const phi = i * golden;
+      const x = Math.cos(phi) * r;
+      const z = Math.sin(phi) * r;
+      out.push({ x, y, z });
+    }
+    return out;
+  }
+
+  const skySamples = makeSkySamples(16000);
+
+  function cameraContainsXYZ(cam, x, y, z) {
+    const f = cam.f;
+    const df = x * f[0] + y * f[1] + z * f[2];
+    if (df <= 1e-6) return false;
+    const r = cam.right;
+    const u = cam.up;
+    const px = (x * r[0] + y * r[1] + z * r[2]) / df;
+    if (px > cam.tanH || px < -cam.tanH) return false;
+    const py = (x * u[0] + y * u[1] + z * u[2]) / df;
+    return py <= cam.tanV && py >= -cam.tanV;
+  }
+
+  function buildCameraBasis(focal, sensor, alt, az, roll = 0) {
+    const f = dirFromAltAz(alt, az);
+    let right0 = cross(WORLD_UP, f);
+    if (vlen(right0) < 1e-7) right0 = [1, 0, 0];
+    right0 = vnorm(right0);
+    const up0 = cross(f, right0);
+    const cr = Math.cos(roll), sr = Math.sin(roll);
+    const right = add(mul(right0, cr), mul(up0, sr));
+    const up = add(mul(up0, cr), mul(right0, -sr));
+    const hfov = 2 * Math.atan(sensor.w / (2 * focal));
+    const vfov = 2 * Math.atan(sensor.h / (2 * focal));
+    const tanH = Math.tan(hfov / 2);
+    const tanV = Math.tan(vfov / 2);
+    const corners = [
+      vnorm(add(add(f, mul(right, -tanH)), mul(up, -tanV))),
+      vnorm(add(add(f, mul(right,  tanH)), mul(up, -tanV))),
+      vnorm(add(add(f, mul(right,  tanH)), mul(up,  tanV))),
+      vnorm(add(add(f, mul(right, -tanH)), mul(up,  tanV)))
+    ];
+    return { f, right, up, hfov, vfov, tanH, tanV, corners };
+  }
+
+  function updateCameraBasis(cam) {
+    const b = buildCameraBasis(cam.focal, cam.sensor, cam.alt, cam.az, cam.roll);
+    cam.f = b.f; cam.right = b.right; cam.up = b.up;
+    cam.hfov = b.hfov; cam.vfov = b.vfov;
+    cam.tanH = b.tanH; cam.tanV = b.tanV; cam.corners = b.corners;
+  }
+
+  function createCamera({ focal, sensor, sensorKey, alt, az, roll = 0, group = null }) {
+    const cam = {
+      id: state.nextCamId++,
+      groupId: group ? group.id : null,
+      focal,
+      sensor,
+      sensorKey,
+      alt,
+      az,
+      roll,
+      color: group ? group.color.hex : '#5ed7ff',
+      rgb: group ? group.color.rgb : [94, 215, 255]
+    };
+    updateCameraBasis(cam);
+    return cam;
+  }
+
+  function selectedCamera() {
+    return state.cameras.find(c => c.id === state.selectedId) || null;
+  }
+
+  function normalizeRoll(rad) {
+    const deg = rad * RAD;
+    return ((((deg + 180) % 360) + 360) % 360 - 180) * DEG;
+  }
+
+  function setCameraRoll(cam, roll, silent = false) {
+    if (!cam) return;
+    cam.roll = normalizeRoll(roll);
+    updateCameraBasis(cam);
+    state.coverageDirty = true;
+    state.heatDirty = true;
+    state.miniDirty = true;
+    state.metricsDirty = true;
+    invalidateSimulation();
+    if (!silent) updateRollUI();
+    if (framing.open) requestFramingDraw();
+  }
+
+  function updateRollUI() {
+    if (!el.rollRange) return;
+    const cam = selectedCamera();
+    if (cam) {
+      const deg = Math.round(cam.roll * RAD);
+      el.rollRange.disabled = false;
+      el.rollRange.value = String(deg);
+      el.rollVal.textContent = deg + '°';
+      el.rollHint.textContent = `选中 ${cam.focal}mm · Shift + 拖动镜头也可旋转`;
+    } else {
+      el.rollRange.disabled = true;
+      el.rollRange.value = '0';
+      el.rollVal.textContent = '0°';
+      el.rollHint.textContent = '点选天球上的镜头后旋转画幅';
+    }
+  }
+
+  function recomputeCoverage() {
+    coverageGrid.fill(0);
+    const cams = state.cameras;
+    for (let y = 0; y < GRID_H; y++) {
+      const alt = 90 - (y + 0.5) * (180 / GRID_H);
+      if (alt < 0) continue;
+      const ca = Math.cos(alt * DEG), sa = Math.sin(alt * DEG);
+      for (let x = 0; x < GRID_W; x++) {
+        const az = (x + 0.5) * (360 / GRID_W);
+        const dx = ca * Math.sin(az * DEG);
+        const dz = ca * Math.cos(az * DEG);
+        let count = 0;
+        for (let i = 0; i < cams.length; i++) {
+          if (cameraContainsXYZ(cams[i], dx, sa, dz)) count++;
+        }
+        coverageGrid[y * GRID_W + x] = Math.min(count, 9);
+      }
+    }
+    updateMiniCoverageImage();
+    state.miniDirty = true;
+    state.metricsDirty = true;
+    state.heatDirty = true;
+  }
+
+  function updateMiniCoverageImage() {
+    const img = miniCoverageCtx.createImageData(GRID_W, GRID_H);
+    const data = img.data;
+    for (let y = 0; y < GRID_H; y++) {
+      const alt = 90 - (y + 0.5);
+      for (let x = 0; x < GRID_W; x++) {
+        const idx = (y * GRID_W + x) * 4;
+        if (alt < 0) continue;
+        const count = coverageGrid[y * GRID_W + x];
+        if (!count) {
+          data[idx] = 255;
+          data[idx + 1] = 94;
+          data[idx + 2] = 108;
+          data[idx + 3] = 48;
+          continue;
+        }
+        const rgb = COVER_RGB[Math.min(count, 5)] || COVER_RGB[5];
+        data[idx] = rgb[0];
+        data[idx + 1] = rgb[1];
+        data[idx + 2] = rgb[2];
+        data[idx + 3] = 156;
+      }
+    }
+    miniCoverageCtx.putImageData(img, 0, 0);
+  }
+
+  function computeMetrics() {
+    let covered = 0, overlap = 0, sum = 0;
+    let zenithTotal = 0, zenithCovered = 0;
+    let horizonTotal = 0, horizonCovered = 0;
+    const cams = state.cameras;
+    for (let i = 0; i < skySamples.length; i++) {
+      const s = skySamples[i];
+      let c = 0;
+      for (let j = 0; j < cams.length; j++) {
+        if (cameraContainsXYZ(cams[j], s.x, s.y, s.z)) c++;
+      }
+      if (c > 0) covered++;
+      if (c > 1) overlap++;
+      sum += c;
+      const alt = Math.asin(clamp(s.y, -1, 1)) * RAD;
+      if (alt >= 60) {
+        zenithTotal++;
+        if (c > 0) zenithCovered++;
+      }
+      if (alt <= 15) {
+        horizonTotal++;
+        if (c > 0) horizonCovered++;
+      }
+    }
+    const total = skySamples.length || 1;
+    const pct = covered / total * 100;
+    const overlapPct = overlap / total * 100;
+    const avg = sum / total;
+    el.coveragePct.textContent = fmt(pct, 1);
+    el.uncoveredPct.textContent = fmt(100 - pct, 1) + '%';
+    el.overlapPct.textContent = fmt(overlapPct, 1) + '%';
+    el.avgLayers.textContent = fmt(avg, 1) + '×';
+    el.cameraCount.textContent = String(cams.length);
+    el.zenithPct.textContent = fmt(zenithTotal ? zenithCovered / zenithTotal * 100 : 0, 1) + '%';
+    el.horizonPct.textContent = fmt(horizonTotal ? horizonCovered / horizonTotal * 100 : 0, 1) + '%';
+    el.gaugePct.textContent = String(Math.round(pct));
+    el.gaugeArc.style.strokeDashoffset = String(213.63 * (1 - pct / 100));
+    el.coverageBar.style.width = pct + '%';
+  }
+
+  // ---------------------------------------------------------------------------
+  // camera spawning (manual placement)
+  // ---------------------------------------------------------------------------
+  function spawnGroupCameras(group) {
+    const n = group.count;
+    const cols = Math.ceil(Math.sqrt(n));
+    const rows = Math.ceil(n / cols);
+    const centerAlt = clamp(state.viewPitch, 8, 82);
+    const centerAz = state.viewYaw;
+    const stepAz = n > 1 ? 26 : 0;
+    const stepAlt = n > 1 ? 16 : 0;
+    for (let i = 0; i < n; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const alt = clamp(centerAlt + (row - (rows - 1) / 2) * stepAlt, 5, 85);
+      const az = ((centerAz + (col - (cols - 1) / 2) * stepAz) % 360 + 360) % 360;
+      const cam = createCamera({
+        focal: group.focal,
+        sensor: group.sensor,
+        sensorKey: group.sensorKey,
+        alt,
+        az,
+        roll: 0,
+        group
+      });
+      state.cameras.push(cam);
+      group.cameras.push(cam);
+    }
+  }
+  // ---------------------------------------------------------------------------
+  // stars
+  // ---------------------------------------------------------------------------
+  const STAR_COLORS = [
+    [255, 255, 255], [220, 236, 255], [190, 216, 255],
+    [255, 243, 214], [255, 218, 184], [172, 202, 255]
+  ];
+
+  // 主要亮星与星座连线（J2000 赤经/赤纬，单位：度）
+  const CONSTELLATIONS = [
+    {
+      name: '猎户座', en: 'ORION',
+      stars: [
+        { ra: 88.79, dec: 7.41, mag: 0.45, color: [255, 218, 178] },
+        { ra: 81.28, dec: 6.35, mag: 1.64 },
+        { ra: 83.00, dec: -0.30, mag: 2.25 },
+        { ra: 84.05, dec: -1.20, mag: 1.69 },
+        { ra: 85.19, dec: -1.94, mag: 1.74 },
+        { ra: 86.94, dec: -9.67, mag: 2.06 },
+        { ra: 78.63, dec: -8.20, mag: 0.18 },
+        { ra: 83.78, dec: 9.93, mag: 3.39 }
+      ],
+      lines: [[0, 1], [0, 7], [1, 7], [0, 4], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 2]]
+    },
+    {
+      name: '大熊座', en: 'URSA MAJOR',
+      stars: [
+        { ra: 165.93, dec: 61.75, mag: 1.79 },
+        { ra: 165.46, dec: 56.38, mag: 2.37 },
+        { ra: 178.46, dec: 53.69, mag: 2.44 },
+        { ra: 183.86, dec: 57.03, mag: 3.31 },
+        { ra: 193.51, dec: 55.96, mag: 1.77 },
+        { ra: 200.98, dec: 54.93, mag: 2.23 },
+        { ra: 206.89, dec: 49.31, mag: 1.86 }
+      ],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [4, 5], [5, 6]]
+    },
+    {
+      name: '小熊座', en: 'URSA MINOR',
+      stars: [
+        { ra: 37.95, dec: 89.26, mag: 1.98 },
+        { ra: 263.05, dec: 86.59, mag: 4.35 },
+        { ra: 251.49, dec: 82.04, mag: 4.23 },
+        { ra: 236.01, dec: 77.79, mag: 4.29 },
+        { ra: 222.68, dec: 74.16, mag: 2.08 },
+        { ra: 230.18, dec: 71.83, mag: 3.00 },
+        { ra: 244.38, dec: 75.76, mag: 4.95 }
+      ],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 3]]
+    },
+    {
+      name: '仙后座', en: 'CASSIOPEIA',
+      stars: [
+        { ra: 10.13, dec: 56.54, mag: 2.24 },
+        { ra: 2.29, dec: 59.15, mag: 2.28 },
+        { ra: 14.18, dec: 60.72, mag: 2.47 },
+        { ra: 21.45, dec: 60.24, mag: 2.68 },
+        { ra: 28.60, dec: 63.67, mag: 3.35 }
+      ],
+      lines: [[1, 0], [0, 2], [2, 3], [3, 4]]
+    },
+    {
+      name: '天鹅座', en: 'CYGNUS',
+      stars: [
+        { ra: 310.36, dec: 45.28, mag: 1.25 },
+        { ra: 305.56, dec: 40.26, mag: 2.23 },
+        { ra: 311.55, dec: 33.97, mag: 2.46 },
+        { ra: 296.24, dec: 45.13, mag: 2.87 },
+        { ra: 292.68, dec: 27.96, mag: 3.05 }
+      ],
+      lines: [[0, 1], [1, 2], [3, 1], [1, 4]]
+    },
+    {
+      name: '天琴座', en: 'LYRA',
+      stars: [
+        { ra: 279.23, dec: 38.78, mag: 0.03 },
+        { ra: 282.52, dec: 33.36, mag: 3.52 },
+        { ra: 284.74, dec: 32.69, mag: 3.25 },
+        { ra: 283.63, dec: 36.90, mag: 4.30 },
+        { ra: 281.19, dec: 37.61, mag: 4.30 }
+      ],
+      lines: [[0, 3], [3, 1], [1, 2], [2, 4], [4, 0]]
+    },
+    {
+      name: '天蝎座', en: 'SCORPIUS',
+      stars: [
+        { ra: 247.35, dec: -26.43, mag: 1.06, color: [255, 205, 165] },
+        { ra: 241.36, dec: -19.81, mag: 2.56 },
+        { ra: 240.08, dec: -22.62, mag: 2.29 },
+        { ra: 264.33, dec: -42.99, mag: 1.86 },
+        { ra: 263.40, dec: -37.10, mag: 1.62 },
+        { ra: 262.69, dec: -37.30, mag: 2.69 },
+        { ra: 239.71, dec: -26.11, mag: 2.89 }
+      ],
+      lines: [[1, 2], [2, 0], [0, 4], [4, 3], [4, 5], [0, 6]]
+    },
+    {
+      name: '金牛座', en: 'TAURUS',
+      stars: [
+        { ra: 68.98, dec: 16.51, mag: 0.87, color: [255, 212, 172] },
+        { ra: 81.57, dec: 28.61, mag: 1.65 },
+        { ra: 56.87, dec: 24.10, mag: 2.87 },
+        { ra: 67.15, dec: 15.87, mag: 3.40 },
+        { ra: 84.41, dec: 21.14, mag: 3.00 }
+      ],
+      lines: [[2, 0], [0, 4], [4, 1], [0, 3]]
+    },
+    {
+      name: '双子座', en: 'GEMINI',
+      stars: [
+        { ra: 113.65, dec: 31.89, mag: 1.58 },
+        { ra: 116.33, dec: 28.03, mag: 1.16, color: [255, 225, 190] },
+        { ra: 99.43, dec: 16.40, mag: 1.93 },
+        { ra: 110.03, dec: 21.98, mag: 3.53 },
+        { ra: 101.98, dec: 25.13, mag: 3.06 },
+        { ra: 95.74, dec: 22.51, mag: 2.87 }
+      ],
+      lines: [[0, 1], [0, 3], [1, 3], [3, 2], [2, 4], [4, 5], [2, 5]]
+    },
+    {
+      name: '狮子座', en: 'LEO',
+      stars: [
+        { ra: 152.09, dec: 11.97, mag: 1.35 },
+        { ra: 177.26, dec: 14.57, mag: 2.14 },
+        { ra: 154.99, dec: 19.84, mag: 2.08 },
+        { ra: 168.53, dec: 20.52, mag: 2.56 },
+        { ra: 168.56, dec: 15.43, mag: 3.32 },
+        { ra: 154.17, dec: 23.42, mag: 3.44 },
+        { ra: 148.19, dec: 26.01, mag: 3.88 }
+      ],
+      lines: [[0, 2], [2, 5], [5, 6], [2, 3], [3, 1], [1, 4], [4, 0]]
+    },
+    {
+      name: '牧夫座', en: 'BOOTES',
+      stars: [
+        { ra: 213.92, dec: 19.18, mag: -0.05, color: [255, 214, 172] },
+        { ra: 221.25, dec: 27.07, mag: 2.37 },
+        { ra: 218.02, dec: 38.31, mag: 3.03 },
+        { ra: 225.49, dec: 40.39, mag: 3.49 },
+        { ra: 208.67, dec: 18.40, mag: 2.68 }
+      ],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0], [1, 4]]
+    },
+    {
+      name: '南十字座', en: 'CRUX',
+      stars: [
+        { ra: 186.65, dec: -63.10, mag: 0.77 },
+        { ra: 191.93, dec: -59.69, mag: 1.25 },
+        { ra: 187.79, dec: -57.11, mag: 1.63 },
+        { ra: 183.79, dec: -58.75, mag: 2.79 }
+      ],
+      lines: [[0, 2], [1, 3]]
+    },
+    {
+      name: '大犬座', en: 'CANIS MAJOR',
+      stars: [
+        { ra: 101.29, dec: -16.72, mag: -1.46 },
+        { ra: 95.67, dec: -17.96, mag: 1.98 },
+        { ra: 107.10, dec: -26.39, mag: 1.83 },
+        { ra: 104.66, dec: -28.97, mag: 1.50 },
+        { ra: 111.02, dec: -29.30, mag: 2.45 }
+      ],
+      lines: [[0, 1], [0, 2], [2, 3], [3, 4], [2, 4]]
+    },
+    {
+      name: '御夫座', en: 'AURIGA',
+      stars: [
+        { ra: 79.17, dec: 45.99, mag: 0.08 },
+        { ra: 89.88, dec: 44.95, mag: 1.90 },
+        { ra: 89.93, dec: 37.21, mag: 2.62 },
+        { ra: 74.25, dec: 33.17, mag: 2.69 }
+      ],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 0]]
+    },
+    {
+      name: '飞马座', en: 'PEGASUS',
+      stars: [
+        { ra: 346.19, dec: 15.21, mag: 2.49 },
+        { ra: 345.94, dec: 28.08, mag: 2.42 },
+        { ra: 3.31, dec: 15.18, mag: 2.83 },
+        { ra: 2.10, dec: 29.09, mag: 2.06 },
+        { ra: 326.05, dec: 9.88, mag: 2.38 }
+      ],
+      lines: [[0, 1], [1, 3], [3, 2], [2, 0], [0, 4], [1, 4]]
+    },
+    {
+      name: '仙女座', en: 'ANDROMEDA',
+      stars: [
+        { ra: 2.10, dec: 29.09, mag: 2.06 },
+        { ra: 17.43, dec: 35.62, mag: 2.05 },
+        { ra: 30.97, dec: 42.33, mag: 2.10 }
+      ],
+      lines: [[0, 1], [1, 2]]
+    },
+    {
+      name: '英仙座', en: 'PERSEUS',
+      stars: [
+        { ra: 51.08, dec: 49.86, mag: 1.79 },
+        { ra: 47.04, dec: 40.96, mag: 2.09 },
+        { ra: 56.08, dec: 40.95, mag: 2.86 },
+        { ra: 46.20, dec: 53.51, mag: 2.93 }
+      ],
+      lines: [[0, 1], [0, 2], [0, 3], [1, 2]]
+    },
+    {
+      name: '人马座', en: 'SAGITTARIUS',
+      stars: [
+        { ra: 276.04, dec: -34.38, mag: 1.79 },
+        { ra: 283.82, dec: -26.30, mag: 2.05 },
+        { ra: 287.44, dec: -29.88, mag: 2.60 },
+        { ra: 275.25, dec: -29.83, mag: 2.70 },
+        { ra: 276.99, dec: -25.42, mag: 2.81 },
+        { ra: 271.45, dec: -30.42, mag: 2.99 }
+      ],
+      lines: [[0, 3], [3, 4], [4, 1], [1, 2], [2, 0], [3, 5], [5, 0]]
+    }
+  ];
+
+  const stars = [];
+  const milkyWayGlow = [];
+  const milkyWayStars = [];
+  const milkyWayDust = [];
+  const constellationCache = [];
+
+  function makeStars() {
+    for (let i = 0; i < 1450; i++) {
+      const y = rand() * 2 - 1;
+      const r = Math.sqrt(Math.max(0, 1 - y * y));
+      const phi = rand() * TAU;
+      const d = [Math.cos(phi) * r, y, Math.sin(phi) * r];
+      const mag = Math.pow(rand(), 2.5);
+      const color = STAR_COLORS[Math.floor(rand() * STAR_COLORS.length)];
+      stars.push({
+        d,
+        size: 0.3 + mag * 1.9,
+        alpha: 0.14 + mag * 0.72,
+        color,
+        phase: rand() * TAU,
+        twinkle: rand() < 0.3 ? 0.04 + rand() * 0.10 : 0.015 + rand() * 0.03
+      });
+    }
+    for (let i = 0; i < 18; i++) {
+      const y = rand() * 2 - 1;
+      const r = Math.sqrt(Math.max(0, 1 - y * y));
+      const phi = rand() * TAU;
+      const d = [Math.cos(phi) * r, y, Math.sin(phi) * r];
+      const color = STAR_COLORS[Math.floor(rand() * STAR_COLORS.length)];
+      stars.push({
+        d,
+        size: 1.7 + rand() * 1.0,
+        alpha: 0.72 + rand() * 0.2,
+        color,
+        phase: rand() * TAU,
+        twinkle: 0.02 + rand() * 0.05
+      });
+    }
+    stars.sort((a, b) => a.size - b.size);
+  }
+
+  // 银道坐标 -> J2000 赤道坐标
+  function galacticToRaDec(l, b) {
+    const lr = l * DEG, br = b * DEG;
+    const xg = Math.cos(br) * Math.cos(lr);
+    const yg = Math.cos(br) * Math.sin(lr);
+    const zg = Math.sin(br);
+    const xe = -0.0548755604 * xg + 0.4941094279 * yg - 0.8676661490 * zg;
+    const ye = -0.8734370902 * xg - 0.4448296300 * yg - 0.1980763734 * zg;
+    const ze = -0.4838350155 * xg + 0.7469822445 * yg + 0.4559837762 * zg;
+    return {
+      ra: ((Math.atan2(ye, xe) * RAD) % 360 + 360) % 360,
+      dec: Math.asin(clamp(ze, -1, 1)) * RAD
+    };
+  }
+
+  function rebuildSky() {
+    const date = getObservationDate();
+    const toDir = (ra, dec) => {
+      const a = radecToAltAz(ra, dec, state.lat, state.lon, date);
+      return dirFromAltAz(a.alt, a.az);
+    };
+
+    milkyWayGlow.length = 0;
+    milkyWayStars.length = 0;
+    milkyWayDust.length = 0;
+    constellationCache.length = 0;
+
+    // 银河：沿银道面的宽幅柔光 + 星云颗粒 + 暗尘带
+    for (let i = 0; i < 24; i++) {
+      const l = i * 15;
+      const q = galacticToRaDec(l, 0);
+      const center = Math.max(0, Math.cos(l * DEG));
+      const cygnus = Math.exp(-Math.pow((l - 80) / 55, 2));
+      milkyWayGlow.push({
+        d: toDir(q.ra, q.dec),
+        rgb: center > 0.55 ? [255, 226, 190] : [176, 198, 255],
+        radius: 0.17 + 0.06 * center,
+        alpha: 0.10 + 0.10 * center + 0.04 * cygnus
+      });
+    }
+    for (let i = 0; i < 8; i++) {
+      const l = i * 45 + 22.5;
+      const b = i % 2 ? 5 : -5;
+      const q = galacticToRaDec(l, b);
+      milkyWayGlow.push({
+        d: toDir(q.ra, q.dec),
+        rgb: [165, 188, 255],
+        radius: 0.14,
+        alpha: 0.055
+      });
+    }
+    for (let i = 0; i < 16; i++) {
+      const l = i * 22.5;
+      const q = galacticToRaDec(l, 0);
+      const center = Math.max(0, Math.cos(l * DEG));
+      milkyWayGlow.push({
+        d: toDir(q.ra, q.dec),
+        rgb: [142, 172, 255],
+        radius: 0.30,
+        alpha: 0.025 + 0.02 * center
+      });
+    }
+    const gc = galacticToRaDec(0, 0);
+    milkyWayGlow.push({
+      d: toDir(gc.ra, gc.dec),
+      rgb: [255, 218, 178],
+      radius: 0.26,
+      alpha: 0.16
+    });
+    // 银河亮脊
+    for (let i = 0; i < 32; i++) {
+      const l = i * 11.25;
+      const q = galacticToRaDec(l, randn() * 0.6);
+      const center = Math.max(0, Math.cos(l * DEG));
+      milkyWayGlow.push({
+        d: toDir(q.ra, q.dec),
+        rgb: center > 0.6 ? [255, 232, 205] : [205, 220, 255],
+        radius: 0.055 + 0.025 * center,
+        alpha: 0.08 + 0.10 * center
+      });
+    }
+    for (let i = 0; i < 2500; i++) {
+      const l = rand() * 360;
+      const b = clamp(randn() * 6.5, -22, 22);
+      const q = galacticToRaDec(l, b);
+      const center = 0.55 + 0.45 * Math.cos(l * DEG);
+      const clump = 0.55 + 0.45 * Math.exp(-Math.pow((l - 80) / 26, 2)) + 0.25 * Math.exp(-Math.pow(l / 18, 2));
+      const mag = Math.pow(rand(), 2.2);
+      milkyWayStars.push({
+        d: toDir(q.ra, q.dec),
+        size: 0.34 + mag * 1.4,
+        alpha: (0.10 + mag * 0.36) * (0.6 + 0.4 * center) * clump,
+        color: STAR_COLORS[Math.floor(rand() * 3)]
+      });
+    }
+    for (let i = 0; i < 32; i++) {
+      const l = rand() * 360;
+      const b = randn() * 2.0;
+      const q = galacticToRaDec(l, b);
+      milkyWayDust.push({
+        d: toDir(q.ra, q.dec),
+        radius: 0.022 + rand() * 0.06,
+        alpha: 0.14 + rand() * 0.14
+      });
+    }
+
+    // 星座亮星与连线
+    for (const c of CONSTELLATIONS) {
+      const pts = c.stars.map(s => ({
+        d: toDir(s.ra, s.dec),
+        mag: s.mag,
+        color: s.color || [235, 244, 255]
+      }));
+      let sum = [0, 0, 0];
+      for (const p of pts) sum = add(sum, p.d);
+      constellationCache.push({
+        name: c.name,
+        en: c.en,
+        stars: pts,
+        lines: c.lines.map(([i, j]) => [pts[i].d, pts[j].d]),
+        labelDir: vlen(sum) > 1e-5 ? vnorm(sum) : pts[0].d
+      });
+    }
+  }
+
+  makeStars();
+
+  // ---------------------------------------------------------------------------
+  // projection
+  // ---------------------------------------------------------------------------
+  function updateViewBasis() {
+    state.viewDir = dirFromAltAz(state.viewPitch, state.viewYaw);
+    let right = cross(WORLD_UP, state.viewDir);
+    if (vlen(right) < 1e-7) right = [1, 0, 0];
+    state.viewRight = vnorm(right);
+    state.viewUp = cross(state.viewDir, state.viewRight);
+  }
+
+  function projectDir(d) {
+    const cx = state.globeCX, cy = state.globeCY, R = state.globeR;
+    const depth = dot(d, state.viewDir);
+    return {
+      x: cx + dot(d, state.viewRight) * R,
+      y: cy - dot(d, state.viewUp) * R,
+      depth
+    };
+  }
+
+  function screenToDir(x, y) {
+    const cx = state.globeCX, cy = state.globeCY, R = state.globeR;
+    let u = (x - cx) / R;
+    let v = (cy - y) / R;
+    const r = Math.hypot(u, v);
+    if (r > 0.985) {
+      u *= 0.985 / r;
+      v *= 0.985 / r;
+    }
+    const w = Math.sqrt(Math.max(0, 1 - u * u - v * v));
+    return vnorm(add(add(mul(state.viewRight, u), mul(state.viewUp, v)), mul(state.viewDir, w)));
+  }
+
+  // ---------------------------------------------------------------------------
+  // heatmap (per-pixel inverse orthographic projection)
+  // ---------------------------------------------------------------------------
+  const heatCanvas = document.createElement('canvas');
+  const heatCtx = heatCanvas.getContext('2d');
+  let heatSize = 0;
+
+  function renderHeatmap(size) {
+    updateViewBasis();
+    size = Math.max(180, Math.round(size));
+    if (heatCanvas.width !== size) {
+      heatCanvas.width = size;
+      heatCanvas.height = size;
+      heatSize = size;
+    }
+    const img = heatCtx.createImageData(size, size);
+    const data = img.data;
+    const cx = size / 2, cy = size / 2, rad = size / 2 - 1;
+    const vd = state.viewDir, rt = state.viewRight, up = state.viewUp;
+    const showHeat = state.showHeat;
+    for (let py = 0; py < size; py++) {
+      const sy = (cy - py) / rad;
+      for (let px = 0; px < size; px++) {
+        const sx = (px - cx) / rad;
+        const r2 = sx * sx + sy * sy;
+        if (r2 > 1) continue;
+        const sz = Math.sqrt(1 - r2);
+        const wx = sx * rt[0] + sy * up[0] + sz * vd[0];
+        const wy = sx * rt[1] + sy * up[1] + sz * vd[1];
+        const wz = sx * rt[2] + sy * up[2] + sz * vd[2];
+        const alt = Math.asin(clamp(wy, -1, 1));
+        const idx = (py * size + px) * 4;
+        const edge = Math.min(1, (1 - Math.sqrt(r2)) * rad / 2.2);
+        if (alt < 0) {
+          data[idx] = 2;
+          data[idx + 1] = 6;
+          data[idx + 2] = 18;
+          data[idx + 3] = Math.round(118 * edge);
+        } else if (showHeat) {
+          let az = Math.atan2(wx, wz);
+          if (az < 0) az += TAU;
+          const gx = Math.min(GRID_W - 1, Math.floor(az / TAU * GRID_W));
+          const gy = Math.min(GRID_H - 1, Math.floor((Math.PI / 2 - alt) / Math.PI * GRID_H));
+          const count = coverageGrid[gy * GRID_W + gx];
+          if (count > 0) {
+            const rgb = COVER_RGB[Math.min(count, 5)] || COVER_RGB[5];
+            data[idx] = rgb[0];
+            data[idx + 1] = rgb[1];
+            data[idx + 2] = rgb[2];
+            data[idx + 3] = Math.round((44 + Math.min(count, 5) * 8) * edge);
+          } else {
+            data[idx] = 255;
+            data[idx + 1] = 94;
+            data[idx + 2] = 108;
+            data[idx + 3] = Math.round(32 * edge);
+          }
+        }
+      }
+    }
+    heatCtx.putImageData(img, 0, 0);
+    state.heatDirty = false;
+  }
+
+  // ---------------------------------------------------------------------------
+  // globe rendering
+  // ---------------------------------------------------------------------------
+  function drawMilkyWay(ctx, now) {
+    const scale = state.globeR / 330;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (const g of milkyWayGlow) {
+      if (g.d[1] < 0) continue;
+      const p = projectDir(g.d);
+      if (p.depth < 0.08) continue;
+      const r = state.globeR * g.radius;
+      const a = g.alpha * (0.35 + 0.65 * p.depth);
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      grad.addColorStop(0, rgba(g.rgb, a));
+      grad.addColorStop(0.48, rgba(g.rgb, a * 0.42));
+      grad.addColorStop(1, rgba(g.rgb, 0));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 暗尘带：压在银河柔光上，制造分叉和不均匀感
+    ctx.save();
+    for (const d of milkyWayDust) {
+      if (d.d[1] < 0) continue;
+      const p = projectDir(d.d);
+      if (p.depth < 0.08) continue;
+      const r = state.globeR * d.radius;
+      const a = d.alpha * (0.3 + 0.7 * p.depth);
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      grad.addColorStop(0, `rgba(2,6,14,${a})`);
+      grad.addColorStop(0.55, `rgba(2,6,14,${a * 0.55})`);
+      grad.addColorStop(1, 'rgba(2,6,14,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 星云颗粒
+    ctx.save();
+    for (const s of milkyWayStars) {
+      if (s.d[1] < 0) continue;
+      const p = projectDir(s.d);
+      if (p.depth < 0.01) continue;
+      const size = Math.max(0.4, s.size * scale);
+      ctx.fillStyle = rgba(s.color, s.alpha * (0.25 + 0.75 * p.depth));
+      ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+    }
+    ctx.restore();
+  }
+
+  function drawStars(ctx, now) {
+    const scale = state.globeR / 330;
+    const t = now * 0.001;
+    ctx.save();
+    for (const s of stars) {
+      const p = projectDir(s.d);
+      if (p.depth < 0.01) continue;
+      const tw = 1 + Math.sin(t * 1.7 + s.phase) * s.twinkle;
+      const a = clamp(s.alpha * (0.32 + 0.68 * p.depth) * tw, 0, 1);
+      const size = Math.max(0.5, s.size * scale * (0.75 + 0.35 * p.depth));
+      if (size > 1.35) {
+        ctx.globalAlpha = a * 0.16;
+        ctx.fillStyle = rgba(s.color, 1);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size * 1.9, 0, TAU);
+        ctx.fill();
+        ctx.globalAlpha = a;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size * 0.58, 0, TAU);
+        ctx.fill();
+      } else {
+        ctx.globalAlpha = a;
+        ctx.fillStyle = rgba(s.color, 1);
+        ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+      }
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawConstellations(ctx) {
+    const scale = state.globeR / 330;
+    const labelSpots = [];
+    for (const c of constellationCache) {
+      // 连线
+      ctx.save();
+      ctx.lineWidth = 0.8;
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = 'rgba(90,150,255,0.4)';
+      for (const [a, b] of c.lines) {
+        if (a[1] < -0.03 || b[1] < -0.03) continue;
+        const pa = projectDir(a);
+        const pb = projectDir(b);
+        if (pa.depth < 0.02 || pb.depth < 0.02) continue;
+        ctx.strokeStyle = `rgba(142,184,255,${0.26 + 0.22 * Math.min(pa.depth, pb.depth)})`;
+        ctx.beginPath();
+        ctx.moveTo(pa.x, pa.y);
+        ctx.lineTo(pb.x, pb.y);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 真实亮星
+      for (const s of c.stars) {
+        if (s.d[1] < -0.03) continue;
+        const p = projectDir(s.d);
+        if (p.depth < 0.02) continue;
+        const bright = clamp(3.2 - s.mag, 0.6, 3.2);
+        const r = (0.72 + bright * 0.34) * clamp(scale, 0.8, 1.55);
+        const a = 0.88 * (0.32 + 0.68 * p.depth);
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.fillStyle = rgba(s.color, 1);
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = rgba(s.color, 0.7);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, TAU);
+        ctx.fill();
+        if (s.mag < 1.2) {
+          ctx.globalAlpha = a * 0.28;
+          ctx.strokeStyle = rgba(s.color, 1);
+          ctx.lineWidth = 0.6;
+          ctx.beginPath();
+          ctx.moveTo(p.x - r * 3.2, p.y);
+          ctx.lineTo(p.x + r * 3.2, p.y);
+          ctx.moveTo(p.x, p.y - r * 3.2);
+          ctx.lineTo(p.x, p.y + r * 3.2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // 星座名（小屏隐藏标签，避免拥挤；放大后天球半径增大再显示）
+      if (state.globeR < 185) continue;
+      const vis = [];
+      for (const s of c.stars) {
+        if (s.d[1] < 0) continue;
+        const p = projectDir(s.d);
+        if (p.depth >= 0.08) vis.push(p);
+      }
+      if (vis.length < 2) continue;
+      const lx = vis.reduce((sum, p) => sum + p.x, 0) / vis.length;
+      const ly = vis.reduce((sum, p) => sum + p.y, 0) / vis.length;
+      if (labelSpots.some(q => Math.hypot(q.x - lx, q.y - ly) < 28)) continue;
+      labelSpots.push({ x: lx, y: ly });
+      ctx.save();
+      ctx.font = '9px "Segoe UI", "Microsoft YaHei", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(180,214,255,0.68)';
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
+      ctx.fillText(c.name, lx, ly);
+      ctx.restore();
+    }
+  }
+
+  function strokeSphereCurve(ctx, dirs, color, width) {
+    ctx.beginPath();
+    let pen = false;
+    for (let i = 0; i < dirs.length; i++) {
+      const p = projectDir(dirs[i]);
+      if (p.depth >= 0) {
+        if (!pen) { ctx.moveTo(p.x, p.y); pen = true; }
+        else ctx.lineTo(p.x, p.y);
+      } else {
+        pen = false;
+      }
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.stroke();
+  }
+
+  function drawGrid(ctx) {
+    for (const alt of [-60, -30, 0, 30, 60]) {
+      const pts = [];
+      for (let az = 0; az <= 360; az += 3) pts.push(dirFromAltAz(alt, az));
+      const isHorizon = alt === 0;
+      strokeSphereCurve(ctx, pts, isHorizon ? 'rgba(116,205,255,0.42)' : 'rgba(105,155,220,0.11)', isHorizon ? 1.15 : 0.7);
+    }
+    for (let az = 0; az < 360; az += 30) {
+      const pts = [];
+      for (let alt = -90; alt <= 90; alt += 3) pts.push(dirFromAltAz(alt, az));
+      strokeSphereCurve(ctx, pts, 'rgba(105,155,220,0.075)', 0.65);
+    }
+  }
+
+  function sampleFootprint(cam, steps = 16) {
+    const out = [];
+    for (let e = 0; e < 4; e++) {
+      const a = cam.corners[e];
+      const b = cam.corners[(e + 1) % 4];
+      for (let i = 0; i < steps; i++) out.push(slerp(a, b, i / steps));
+    }
+    return out;
+  }
+
+  function clipToHemisphere(poly, viewDir) {
+    if (!poly.length) return [];
+    const out = [];
+    for (let i = 0; i < poly.length; i++) {
+      const A = poly[i];
+      const B = poly[(i + 1) % poly.length];
+      const da = dot(A, viewDir);
+      const db = dot(B, viewDir);
+      const inA = da >= 0;
+      const inB = db >= 0;
+      if (inA) out.push(A);
+      if (inA !== inB) {
+        const n = cross(A, B);
+        const nl = vlen(n);
+        if (nl < 1e-9) continue;
+        let p = cross(mul(n, 1 / nl), viewDir);
+        const pl = vlen(p);
+        if (pl < 1e-9) continue;
+        p = mul(p, 1 / pl);
+        if (dot(p, add(A, B)) < 0) p = mul(p, -1);
+        out.push(p);
+      }
+    }
+    return out;
+  }
+
+  function drawFootprints(ctx, now) {
+    const cams = state.cameras;
+    for (const cam of cams) {
+      const selected = cam.id === state.selectedId;
+      const hovered = cam.id === state.hoverId;
+      const boundary = sampleFootprint(cam, 14);
+      if (selected) {
+        const clipped = clipToHemisphere(boundary, state.viewDir);
+        if (clipped.length > 2) {
+          ctx.beginPath();
+          for (let i = 0; i < clipped.length; i++) {
+            const p = projectDir(clipped[i]);
+            if (i === 0) ctx.moveTo(p.x, p.y);
+            else ctx.lineTo(p.x, p.y);
+          }
+          ctx.closePath();
+          ctx.fillStyle = rgba(cam.rgb, 0.15);
+          ctx.fill();
+        }
+      }
+      ctx.beginPath();
+      let pen = false;
+      for (let e = 0; e < 4; e++) {
+        const a = cam.corners[e];
+        const b = cam.corners[(e + 1) % 4];
+        for (let i = 0; i <= 14; i++) {
+          const p = projectDir(slerp(a, b, i / 14));
+          if (p.depth >= 0) {
+            if (!pen) { ctx.moveTo(p.x, p.y); pen = true; }
+            else ctx.lineTo(p.x, p.y);
+          } else {
+            pen = false;
+          }
+        }
+      }
+      ctx.strokeStyle = rgba(cam.rgb, selected ? 1 : hovered ? 0.95 : 0.72);
+      ctx.lineWidth = selected ? 2.0 : hovered ? 1.7 : 1.15;
+      if (selected || hovered) {
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = rgba(cam.rgb, 0.7);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+    // markers on top
+    for (const cam of cams) {
+      const p = projectDir(cam.f);
+      if (p.depth < 0.01) continue;
+      const selected = cam.id === state.selectedId;
+      const hovered = cam.id === state.hoverId;
+      ctx.save();
+      ctx.globalAlpha = 0.18 + 0.12 * p.depth;
+      ctx.fillStyle = rgba(cam.rgb, 1);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, selected ? 12 : 9, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, selected ? 5.4 : 4.2, 0, TAU);
+      ctx.fillStyle = cam.color;
+      ctx.fill();
+      ctx.strokeStyle = selected ? '#ffffff' : 'rgba(240,250,255,0.9)';
+      ctx.lineWidth = selected ? 1.8 : 1.2;
+      ctx.stroke();
+      if (selected) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 9, 0, TAU);
+        ctx.strokeStyle = rgba(cam.rgb, 0.85);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawSelectedLabel(ctx) {
+    const cam = state.cameras.find(c => c.id === state.selectedId);
+    if (!cam) return;
+    const p = projectDir(cam.f);
+    if (p.depth < 0.05) return;
+    const text = `${cam.focal}mm · ALT ${Math.round(cam.alt)}° AZ ${Math.round(cam.az)}°`;
+    ctx.save();
+    ctx.font = '10px "Cascadia Code", Consolas, monospace';
+    const tw = ctx.measureText(text).width;
+    let x = p.x + 14;
+    let y = p.y - 30;
+    const w = tw + 16, h = 22;
+    if (x + w > state.canvasW - 8) x = p.x - w - 14;
+    if (y < 8) y = p.y + 16;
+    roundRectPath(ctx, x, y, w, h, 7);
+    ctx.fillStyle = 'rgba(4,10,20,0.88)';
+    ctx.fill();
+    ctx.strokeStyle = rgba(cam.rgb, 0.45);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#dcecff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + 8, y + h / 2 + 0.5);
+    ctx.restore();
+  }
+
+  function drawHorizonRing(ctx) {
+    const pts = [];
+    for (let az = 0; az <= 360; az += 1) pts.push(dirFromAltAz(0, az));
+    ctx.save();
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = 'rgba(94,215,255,0.55)';
+    strokeSphereCurve(ctx, pts, 'rgba(150,225,255,0.88)', 1.4);
+    ctx.restore();
+  }
+
+  function drawRadiant(ctx, now) {
+    const d = dirFromAltAz(state.radiant.alt, state.radiant.az);
+    const p = projectDir(d);
+    if (p.depth < 0) return;
+    const below = state.radiant.alt < 0;
+    const col = below ? [255, 124, 140] : [255, 210, 122];
+    const t = now * 0.001;
+    const pulse = 10 + Math.sin(t * 2.6) * 2.5;
+    ctx.save();
+    ctx.globalAlpha = below ? 0.5 : 0.35;
+    ctx.strokeStyle = rgba(col, 0.8);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, pulse, 0, TAU);
+    ctx.stroke();
+    ctx.globalAlpha = below ? 0.35 : 0.2;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, pulse + 6, 0, TAU);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.translate(p.x, p.y);
+    ctx.rotate(t * 0.25);
+    ctx.fillStyle = rgba(col, 0.95);
+    ctx.shadowBlur = below ? 4 : 16;
+    ctx.shadowColor = rgba(col, 0.9);
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const r = i % 2 === 0 ? 7.5 : 2.4;
+      const a = i * Math.PI / 4;
+      const x = Math.cos(a) * r, y = Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+    ctx.save();
+    ctx.font = '9px "Segoe UI", "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = rgba(col, below ? 0.65 : 0.92);
+    ctx.fillText(below ? '辐射点 · 地平线下' : '辐射点', p.x, p.y - 15);
+    ctx.restore();
+  }
+
+  function drawCardinals(ctx) {
+    const labels = [['N', 0], ['E', 90], ['S', 180], ['W', 270]];
+    ctx.save();
+    ctx.font = '10px "Cascadia Code", Consolas, monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const [label, az] of labels) {
+      const p = projectDir(dirFromAltAz(0, az));
+      if (p.depth < 0.02) continue;
+      const dx = p.x - state.globeCX;
+      const dy = p.y - state.globeCY;
+      const dl = Math.hypot(dx, dy) || 1;
+      const off = 15;
+      const x = p.x + dx / dl * off;
+      const y = p.y + dy / dl * off;
+      ctx.strokeStyle = 'rgba(150,215,255,0.45)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(p.x + dx / dl * 3, p.y + dy / dl * 3);
+      ctx.lineTo(p.x + dx / dl * 9, p.y + dy / dl * 9);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(190,228,255,0.85)';
+      ctx.fillText(label, x, y);
+    }
+    ctx.restore();
+  }
+
+  function drawGlobe(now) {
+    const ctx = skyCtx;
+    const W = state.canvasW, H = state.canvasH;
+    if (!W || !H) return;
+    ctx.clearRect(0, 0, W, H);
+    updateViewBasis();
+    const phone = W < 850;
+    const compact = W < 1200;
+    const cx = W * (phone ? 0.42 : compact ? 0.44 : 0.46);
+    const cy = H * (phone ? 0.55 : compact ? 0.47 : 0.48);
+    const R = Math.min(W, H) * (phone ? 0.28 : compact ? 0.30 : 0.34) * state.zoom;
+    state.globeCX = cx;
+    state.globeCY = cy;
+    state.globeR = R;
+
+    // atmosphere glow
+    const glow = ctx.createRadialGradient(cx, cy, R * 0.72, cx, cy, R * 1.28);
+    glow.addColorStop(0, 'rgba(46,120,235,0.13)');
+    glow.addColorStop(0.55, 'rgba(30,80,180,0.05)');
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 1.28, 0, TAU);
+    ctx.fill();
+
+    // sphere base
+    const base = ctx.createRadialGradient(cx - R * 0.34, cy - R * 0.42, R * 0.04, cx, cy, R * 1.03);
+    base.addColorStop(0, '#112746');
+    base.addColorStop(0.38, '#0a1930');
+    base.addColorStop(0.72, '#050d1c');
+    base.addColorStop(1, '#02050c');
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, TAU);
+    ctx.fillStyle = base;
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, TAU);
+    ctx.clip();
+
+    if (state.showStars) drawStars(ctx, now);
+    if (state.showGrid) drawGrid(ctx);
+
+    if (heatSize > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.96;
+      ctx.imageSmoothingEnabled = true;
+      ctx.filter = 'blur(1.1px)';
+      ctx.drawImage(heatCanvas, cx - R, cy - R, R * 2, R * 2);
+      ctx.filter = 'none';
+      ctx.restore();
+    }
+
+    if (state.showMilkyWay) drawMilkyWay(ctx, now);
+    if (state.showConstellations) drawConstellations(ctx);
+    drawFootprints(ctx, now);
+    drawHorizonRing(ctx);
+    drawRadiant(ctx, now);
+    if (state.showMeteors) drawMeteorAnimation(ctx, now);
+
+    ctx.restore();
+
+    // rim
+    ctx.save();
+    const rim = ctx.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
+    rim.addColorStop(0, 'rgba(150,225,255,0.85)');
+    rim.addColorStop(0.45, 'rgba(70,140,255,0.35)');
+    rim.addColorStop(1, 'rgba(183,156,255,0.55)');
+    ctx.strokeStyle = rim;
+    ctx.lineWidth = 1.2;
+    ctx.shadowBlur = 22;
+    ctx.shadowColor = 'rgba(70,150,255,0.45)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, TAU);
+    ctx.stroke();
+    ctx.restore();
+
+    drawCardinals(ctx);
+    drawSelectedLabel(ctx);
+  }
+
+  // ---------------------------------------------------------------------------
+  // meteor simulation & animation
+  // ---------------------------------------------------------------------------
+  function meteorPoint(radiant, dir, d) {
+    const a = d * DEG;
+    return add(mul(radiant, Math.cos(a)), mul(dir, Math.sin(a)));
+  }
+
+  function invalidateSimulation() {
+    if (state.results) {
+      state.results.stale = true;
+      state.anim = null;
+      state.animMeteors = null;
+      updateSimUI();
+    }
+  }
+
+  function simulateMeteors() {
+    const N = state.meteorCount;
+    const model = state.meteorModel || 'realistic';
+    const showerRadiant = dirFromAltAz(state.radiant.alt, state.radiant.az);
+    let ref = Math.abs(showerRadiant[1]) < 0.9 ? WORLD_UP : [1, 0, 0];
+    let u = cross(showerRadiant, ref);
+    if (vlen(u) < 1e-5) u = [1, 0, 0];
+    u = vnorm(u);
+    const v = cross(showerRadiant, u);
+    const meteors = [];
+    for (let m = 0; m < N; m++) {
+      let radiant, dir, d0, d1;
+      const useUniform = model === 'uniform';
+      radiant = showerRadiant;
+      const theta = rand() * TAU;
+      dir = add(mul(u, Math.cos(theta)), mul(v, Math.sin(theta)));
+      if (useUniform) {
+        // 流星位置在天球上均匀分布，但轨迹仍沿辐射点方向
+        const d = Math.acos(1 - 2 * rand()) * RAD;
+        const len = 6 + rand() * 24;
+        d0 = Math.max(0, d - len / 2);
+        d1 = Math.min(180, d + len / 2);
+      } else {
+        // 真实流量：近辐射点的轨迹更密、更短
+        d0 = 1.2 + Math.pow(rand(), 2.6) * 76;
+        const len = 6 + Math.pow(rand(), 1.25) * (10 + d0 * 0.7);
+        d1 = Math.min(112, d0 + len);
+      }
+      const steps = 22;
+      const pts = [];
+      const visibleFlags = [];
+      let visible = false;
+      for (let i = 0; i <= steps; i++) {
+        const p = meteorPoint(radiant, dir, lerp(d0, d1, i / steps));
+        pts.push(p);
+        const vis = p[1] >= 0;
+        visibleFlags.push(vis);
+        if (vis) visible = true;
+      }
+      const camIds = [];
+      const pointCovered = new Array(pts.length).fill(false);
+      let coveredSamples = 0;
+      if (visible) {
+        for (const cam of state.cameras) {
+          let hit = false;
+          for (let i = 0; i < pts.length; i++) {
+            if (!visibleFlags[i]) continue;
+            const p = pts[i];
+            if (cameraContainsXYZ(cam, p[0], p[1], p[2])) {
+              hit = true;
+              if (!pointCovered[i]) { pointCovered[i] = true; coveredSamples++; }
+            }
+          }
+          if (hit) camIds.push(cam.id);
+        }
+      }
+      const visibleSamples = visibleFlags.reduce((n, v) => n + (v ? 1 : 0), 0);
+      const full = visibleSamples > 0 && coveredSamples === visibleSamples;
+      let broken = false;
+      if (visible && !full) {
+        let seen = false, gap = 0, maxGap = 0;
+        for (let i = 0; i < pts.length; i++) {
+          if (!visibleFlags[i]) continue;
+          if (pointCovered[i]) {
+            if (seen && gap > maxGap) maxGap = gap;
+            seen = true;
+            gap = 0;
+          } else {
+            gap++;
+          }
+        }
+        broken = maxGap >= 2;
+      }
+      meteors.push({
+        radiant, dir, d0, d1, visible,
+        camIds,
+        captured: camIds.length > 0,
+        camCount: camIds.length,
+        full,
+        broken,
+        partial: camIds.length > 0 && !full && !broken,
+        uniform: useUniform
+      });
+    }
+
+    let visibleCount = 0, capturedCount = 0, camSum = 0;
+    let fullCount = 0, brokenCount = 0, partialCount = 0;
+    for (const m of meteors) {
+      if (m.visible) visibleCount++;
+      if (m.captured) { capturedCount++; camSum += m.camCount; }
+      if (m.visible) {
+        if (m.full) fullCount++;
+        else if (m.captured) {
+          if (m.broken) brokenCount++;
+          else partialCount++;
+        }
+      }
+    }
+    const rate = visibleCount ? capturedCount / visibleCount * 100 : 0;
+    const avgCams = capturedCount ? camSum / capturedCount : 0;
+    const fullRate = visibleCount ? fullCount / visibleCount * 100 : 0;
+    state.results = {
+      total: N,
+      visible: visibleCount,
+      captured: capturedCount,
+      missed: visibleCount - capturedCount,
+      full: fullCount,
+      broken: brokenCount,
+      partial: partialCount,
+      fullRate,
+      rate,
+      avgCams,
+      model,
+      stale: false
+    };
+
+    // 代表轨迹数量随模拟流星数增加，保证天球上的轨迹密度与模拟规模正相关
+    const trailTarget = clamp(Math.round(N * 0.09) + 10, 18, 200);
+    const capturedTarget = Math.max(8, Math.round(trailTarget * 0.78));
+    const missedTarget = trailTarget - capturedTarget;
+    const captured = meteors.filter(m => m.captured);
+    const missed = meteors.filter(m => !m.captured && m.visible);
+    const shuffle = arr => {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+    const picked = new Set();
+    const pick = [];
+    const addPick = (m, cam) => {
+      if (!m) return;
+      if (picked.has(m)) {
+        const entry = pick.find(e => e.m === m);
+        if (entry && cam && (!entry.cam || cam.hfov < entry.cam.hfov)) entry.cam = cam;
+        return;
+      }
+      picked.add(m);
+      pick.push({ m, cam });
+    };
+    // 窄视场相机优先着色，避免 50mm 的轨迹被广角镜头“覆盖”掉
+    const camsByFov = state.cameras.slice().sort((a, b) => a.hfov - b.hfov);
+    const perCam = clamp(Math.ceil(capturedTarget / Math.max(1, camsByFov.length)) + 1, 2, 8);
+    for (const cam of camsByFov) {
+      if (pick.length >= capturedTarget) break;
+      const hits = captured.filter(m => m.camIds.includes(cam.id));
+      shuffle(hits).slice(0, perCam).forEach(m => addPick(m, cam));
+    }
+    const stratifiedPick = (arr, max) => {
+      const buckets = new Map();
+      for (const m of arr) {
+        const mid = meteorPoint(m.radiant, m.dir, (m.d0 + m.d1) / 2);
+        const a = altAzFromDir(mid);
+        const bx = Math.min(11, Math.floor(a.az / 30));
+        const by = Math.min(5, Math.floor((a.alt + 90) / 30));
+        const key = by * 12 + bx;
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(m);
+      }
+      const keys = shuffle([...buckets.keys()]);
+      const out = [];
+      while (out.length < max && keys.length) {
+        for (const k of keys) {
+          const b = buckets.get(k);
+          if (b.length) out.push(b.pop());
+          if (out.length >= max) break;
+        }
+        for (let i = keys.length - 1; i >= 0; i--) {
+          if (!buckets.get(keys[i]).length) keys.splice(i, 1);
+        }
+      }
+      return out;
+    };
+    const fillCaptured = model === 'uniform' ? stratifiedPick(captured, capturedTarget - pick.length) : shuffle(captured);
+    for (const m of fillCaptured) {
+      if (pick.length >= capturedTarget) break;
+      addPick(m, null);
+    }
+    const fillMissed = model === 'uniform' ? stratifiedPick(missed, missedTarget) : shuffle(missed);
+    for (const m of fillMissed) {
+      if (pick.length >= trailTarget) break;
+      addPick(m, null);
+    }
+    const camById = new Map(state.cameras.map(c => [c.id, c]));
+    const delayStep = Math.min(80, 1100 / Math.max(1, trailTarget));
+    state.animMeteors = pick.map((entry, i) => {
+      const m = entry.m;
+      let rgb = [255, 238, 196];
+      if (m.captured) {
+        const cam = entry.cam || m.camIds
+          .map(id => camById.get(id))
+          .filter(Boolean)
+          .sort((a, b) => a.hfov - b.hfov)[0];
+        if (cam) rgb = cam.rgb;
+      } else {
+        rgb = [255, 122, 128];
+      }
+      return {
+        radiant: m.radiant,
+        dir: m.dir,
+        d0: m.d0,
+        d1: m.d1,
+        captured: m.captured,
+        full: m.full,
+        broken: m.broken,
+        rgb,
+        camIds: m.camIds,
+        delay: i * delayStep
+      };
+    });
+    state.results.displayTrails = state.animMeteors.length;
+    state.anim = {
+      start: performance.now() + 260,
+      meteors: state.animMeteors,
+      duration: 1850
+    };
+    updateSimUI();
+    showToast(`模拟完成：捕捉 ${capturedCount}/${visibleCount} · 天球显示 ${state.animMeteors.length} 条轨迹`);
+  }
+
+  function traceMeteor(ctx, m, fromD, toD, steps) {
+    const radiant = m.radiant || dirFromAltAz(state.radiant.alt, state.radiant.az);
+    ctx.beginPath();
+    let pen = false;
+    for (let i = 0; i <= steps; i++) {
+      const d = lerp(fromD, toD, i / steps);
+      const world = meteorPoint(radiant, m.dir, d);
+      const q = projectDir(world);
+      if (q.depth >= 0 && world[1] >= 0) {
+        if (!pen) { ctx.moveTo(q.x, q.y); pen = true; }
+        else ctx.lineTo(q.x, q.y);
+      } else {
+        pen = false;
+      }
+    }
+  }
+
+  function drawMeteorAnimation(ctx, now) {
+    const anim = state.anim;
+    if (!anim || !anim.meteors || !anim.meteors.length) return;
+    const many = anim.meteors.length > 80;
+    for (const m of anim.meteors) {
+      const col = m.rgb || (m.captured ? [255, 238, 196] : [255, 122, 128]);
+      const t = (now - anim.start - m.delay) / anim.duration;
+
+      // 常驻轨迹：模拟结束后仍保留，方便逐台相机观察
+      if (state.persistTrails) {
+        ctx.save();
+        traceMeteor(ctx, m, m.d0, m.d1, 28);
+        ctx.strokeStyle = rgba(col, m.captured ? (many ? 0.11 : 0.16) : (many ? 0.07 : 0.1));
+        ctx.lineWidth = 5;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = rgba(col, many ? 0.28 : 0.42);
+        ctx.stroke();
+        ctx.strokeStyle = rgba(col, m.captured ? (many ? 0.5 : 0.7) : (many ? 0.3 : 0.42));
+        ctx.lineWidth = 1.15;
+        ctx.shadowBlur = 5;
+        ctx.stroke();
+        ctx.strokeStyle = many ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 0.65;
+        ctx.shadowBlur = 0;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (t <= 0 || t >= 1.25) continue;
+      const p = clamp(t, 0, 1);
+      const fade = t > 1 ? (1.25 - t) / 0.25 : 1;
+      const head = lerp(m.d0, m.d1, p);
+      const tail = Math.max(m.d0, head - (4 + (m.d1 - m.d0) * 0.55) * Math.min(1, p * 2.3));
+      ctx.save();
+      traceMeteor(ctx, m, tail, head, 14);
+      ctx.strokeStyle = rgba(col, 0.28 * fade);
+      ctx.lineWidth = 5.5;
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = rgba(col, 0.8);
+      ctx.stroke();
+      ctx.strokeStyle = rgba(col, 0.95 * fade);
+      ctx.lineWidth = 1.35;
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      const radiant = m.radiant || dirFromAltAz(state.radiant.alt, state.radiant.az);
+      const headWorld = meteorPoint(radiant, m.dir, head);
+      const hp = projectDir(headWorld);
+      if (hp.depth >= 0 && headWorld[1] >= 0) {
+        ctx.globalAlpha = fade;
+        ctx.fillStyle = 'rgba(255,255,255,0.98)';
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = rgba(col, 1);
+        ctx.beginPath();
+        ctx.arc(hp.x, hp.y, 1.8, 0, TAU);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // minimap
+  // ---------------------------------------------------------------------------
+  function mapPoint(dir) {
+    const a = altAzFromDir(dir);
+    return {
+      x: a.az / 360 * state.miniW,
+      y: (90 - a.alt) / 180 * state.miniH,
+      alt: a.alt,
+      az: a.az
+    };
+  }
+
+  function mapToAltAz(x, y) {
+    let az = x / state.miniW * 360;
+    az = ((az % 360) + 360) % 360;
+    const alt = clamp(90 - y / state.miniH * 180, -90, 90);
+    return { alt, az };
+  }
+
+  function drawMapPath(ctx, pts, close, fill, stroke, lineWidth) {
+    if (!pts.length) return;
+    const W = state.miniW;
+    const arr = [];
+    let prevX = null;
+    for (const p of pts) {
+      let x = p.x;
+      if (prevX !== null) {
+        while (x - prevX > W / 2) x -= W;
+        while (x - prevX < -W / 2) x += W;
+      }
+      arr.push({ x, y: p.y });
+      prevX = x;
+    }
+    for (const off of [-W, 0, W]) {
+      ctx.beginPath();
+      for (let i = 0; i < arr.length; i++) {
+        if (i === 0) ctx.moveTo(arr[i].x + off, arr[i].y);
+        else ctx.lineTo(arr[i].x + off, arr[i].y);
+      }
+      if (close) ctx.closePath();
+      if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+      if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+      }
+    }
+  }
+
+  function drawMini() {
+    const ctx = miniCtx;
+    const W = state.miniW, H = state.miniH;
+    if (!W || !H) return;
+    const S = clamp(W / 360, 1, 3);
+    const fs = clamp(8 * S, 8, 13);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#040914';
+    ctx.fillRect(0, 0, W, H);
+
+    // below-horizon cap
+    const hy = H / 2;
+    const below = ctx.createLinearGradient(0, hy, 0, H);
+    below.addColorStop(0, 'rgba(3,7,15,0.82)');
+    below.addColorStop(1, 'rgba(1,3,8,0.96)');
+    ctx.fillStyle = below;
+    ctx.fillRect(0, hy, W, H - hy);
+
+    if (miniCoverageCanvas.width) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(miniCoverageCanvas, 0, 0, W, H);
+    }
+
+    // below-horizon hatching, drawn over the dark cap
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, hy, W, H - hy);
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(80,125,190,0.1)';
+    ctx.lineWidth = Math.max(1, S * 0.6);
+    for (let x = -H; x < W + H; x += 16) {
+      ctx.beginPath();
+      ctx.moveTo(x, hy);
+      ctx.lineTo(x + H, H);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(80,125,190,0.045)';
+    for (let x = 0; x < W + H; x += 22) {
+      ctx.beginPath();
+      ctx.moveTo(x, H);
+      ctx.lineTo(x + H, hy);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // grid
+    ctx.save();
+    for (const alt of [60, 30, 0, -30, -60]) {
+      const y = (90 - alt) / 180 * H;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.strokeStyle = alt === 0 ? 'rgba(116,205,255,0.4)' : 'rgba(105,155,220,0.12)';
+      ctx.lineWidth = alt === 0 ? 1.2 * Math.min(S, 1.8) : 0.7 * Math.min(S, 1.8);
+      ctx.stroke();
+    }
+    for (const az of [0, 90, 180, 270]) {
+      const x = az / 360 * W;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.strokeStyle = 'rgba(105,155,220,0.1)';
+      ctx.lineWidth = 0.7 * Math.min(S, 1.8);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // labels
+    ctx.save();
+    ctx.font = `${fs}px "Cascadia Code", Consolas, monospace`;
+    ctx.fillStyle = 'rgba(120,160,205,0.55)';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('+60°', 6, (90 - 60) / 180 * H + 1);
+    ctx.fillText('+30°', 6, (90 - 30) / 180 * H + 1);
+    ctx.fillText('0°', 6, H / 2 + 1);
+    ctx.fillStyle = 'rgba(140,185,230,0.7)';
+    ctx.textAlign = 'center';
+    const cardY = H / 2 - Math.min(16, 8 * S);
+    ctx.fillText('N', 8, cardY);
+    ctx.fillText('N', W - 8, cardY);
+    ctx.fillText('E', W * 0.25, cardY);
+    ctx.fillText('S', W * 0.5, cardY);
+    ctx.fillText('W', W * 0.75, cardY);
+    ctx.fillStyle = 'rgba(120,160,205,0.42)';
+    ctx.textAlign = 'center';
+    ctx.fillText('天顶 ZENITH', W / 2, fs + 2);
+    ctx.fillStyle = 'rgba(120,160,205,0.25)';
+    ctx.fillText('地平线下 · BELOW HORIZON', W / 2, H * 0.78);
+    ctx.restore();
+
+    // footprints
+    const lw = el.miniCard.classList.contains('expanded') ? 2.2 : 1.05;
+    for (const cam of state.cameras) {
+      const boundary = sampleFootprint(cam, 10).map(mapPoint);
+      const selected = cam.id === state.selectedId;
+      if (selected) {
+        drawMapPath(ctx, boundary, true, rgba(cam.rgb, 0.13), null, 0);
+      }
+      drawMapPath(ctx, boundary, true, null, rgba(cam.rgb, selected ? 0.95 : 0.68), selected ? lw + 0.6 : lw);
+    }
+
+    // camera markers
+    for (const cam of state.cameras) {
+      const p = mapPoint(cam.f);
+      const selected = cam.id === state.selectedId;
+      for (const off of [-W, 0, W]) {
+        const x = p.x + off;
+        if (x < -12 || x > W + 12) continue;
+        ctx.save();
+        ctx.globalAlpha = 0.22;
+        ctx.fillStyle = cam.color;
+        ctx.beginPath();
+        ctx.arc(x, p.y, selected ? Math.min(11, 7 * S) : Math.min(9, 5 * S), 0, TAU);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(x, p.y, selected ? Math.min(6, 3.6 * S) : Math.min(5, 2.8 * S), 0, TAU);
+        ctx.fillStyle = cam.color;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(245,252,255,0.9)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // radiant
+    const rp = mapPoint(dirFromAltAz(state.radiant.alt, state.radiant.az));
+    const belowR = state.radiant.alt < 0;
+    const rcol = belowR ? [255, 124, 140] : [255, 210, 122];
+    ctx.save();
+    ctx.strokeStyle = rgba(rcol, 0.45);
+    ctx.lineWidth = Math.max(1, S * 0.7);
+    ctx.beginPath();
+    ctx.arc(rp.x, rp.y, Math.min(13, 7 * S), 0, TAU);
+    ctx.stroke();
+    ctx.fillStyle = rgba(rcol, 0.95);
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = rgba(rcol, 0.9);
+    ctx.beginPath();
+    const starR = Math.min(10, 5 * S);
+    for (let i = 0; i < 8; i++) {
+      const r = i % 2 === 0 ? starR : starR * 0.34;
+      const a = i * Math.PI / 4;
+      const x = rp.x + Math.cos(a) * r;
+      const y = rp.y + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // border
+    ctx.strokeStyle = 'rgba(116,174,255,0.12)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+  }
+
+  // ---------------------------------------------------------------------------
+  // framing preview / composition window
+  // ---------------------------------------------------------------------------
+  const FRAMING_PROJECTIONS = {
+    rectilinear: {
+      label: '直线', en: 'Rectilinear', mode: 'radial', frame: 'circle',
+      extU: 1.732, extV: 1.732, maxTheta: 60, radial: 'tan'
+    },
+    cylindrical: {
+      label: '圆柱形', en: 'Cylindrical', mode: 'cyl', frame: 'rect',
+      extU: Math.PI, extV: 3.732, maxLat: 75, v: 'tan'
+    },
+    equirect: {
+      label: '等距离长方圆柱', en: 'Equirectangular', mode: 'cyl', frame: 'rect',
+      extU: Math.PI, extV: Math.PI / 2, maxLat: 89, v: 'lat'
+    },
+    fisheyeCircular: {
+      label: '圆形鱼眼', en: 'Circular Fisheye', mode: 'radial', frame: 'circle',
+      extU: Math.PI / 2, extV: Math.PI / 2, maxTheta: 90, radial: 'theta'
+    },
+    fisheyeSpherical: {
+      label: '球形鱼眼', en: 'Spherical Fisheye', mode: 'radial', frame: 'circle',
+      extU: Math.SQRT2, extV: Math.SQRT2, maxTheta: 90, radial: 'equisolid'
+    },
+    stereographic: {
+      label: '立体', en: 'Stereographic', mode: 'radial', frame: 'circle',
+      extU: 2.383, extV: 2.383, maxTheta: 100, radial: 'stereo'
+    },
+    stereographicDown: {
+      label: '立体感下来', en: 'Stereographic Down', mode: 'radial', frame: 'circle',
+      extU: 2.383, extV: 2.383, maxTheta: 100, radial: 'stereo', flipV: true
+    },
+    mercator: {
+      label: '墨卡托', en: 'Mercator', mode: 'cyl', frame: 'rect',
+      extU: Math.PI, extV: 2.027, maxLat: 75, v: 'mercator'
+    },
+    vedutismo: {
+      label: 'Vedutismo', en: 'Vedutismo', mode: 'vedutismo', frame: 'rect',
+      extU: 2.383, extV: 1.535, maxLon: 100, maxLat: 75
+    },
+    transverseEquirect: {
+      label: '横向等长的', en: 'Transverse Equirectangular', mode: 'transverse', frame: 'rect',
+      extU: Math.PI / 2, extV: Math.PI, maxLat: 89, v: 'lat'
+    },
+    transverseCylindrical: {
+      label: '横向圆柱形', en: 'Transverse Cylindrical', mode: 'transverse', frame: 'rect',
+      extU: 3.732, extV: Math.PI, maxLat: 75, v: 'tan'
+    },
+    transverseMercator: {
+      label: '横向墨卡托', en: 'Transverse Mercator', mode: 'transverse', frame: 'rect',
+      extU: 2.027, extV: Math.PI, maxLat: 75, v: 'mercator'
+    },
+    transverseVedutismo: {
+      label: '横向 Vedutismo', en: 'Transverse Vedutismo', mode: 'transverseVedutismo', frame: 'rect',
+      extU: 1.535, extV: 2.383, maxLat: 75, maxLon: 100
+    },
+    littlePlanet: {
+      label: '小星球', en: 'Little Planet', mode: 'littlePlanet', frame: 'none',
+      extU: 7.46, extV: 7.46, maxTheta: 150
+    },
+    orthographic: {
+      label: '正交球', en: 'Orthographic', mode: 'radial', frame: 'circle',
+      extU: 1, extV: 1, maxTheta: 90, radial: 'sin'
+    }
+  };
+
+  function framingBasis() {
+    const f = dirFromAltAz(framing.pitch, framing.yaw);
+    let right = cross(WORLD_UP, f);
+    if (vlen(right) < 1e-7) right = f[1] >= 0 ? [-1, 0, 0] : [1, 0, 0];
+    right = vnorm(right);
+    return { f, right, up: cross(f, right) };
+  }
+
+  function makeFramingProjector() {
+    const base = framingBasis();
+    const W = framing.W, H = framing.H;
+    const name = framing.projection;
+    const spec = FRAMING_PROJECTIONS[name] || FRAMING_PROJECTIONS.stereographic;
+    let b = base;
+    if (spec.mode === 'littlePlanet') {
+      const a = framing.yaw * DEG;
+      b = {
+        f: [0, -1, 0],
+        right: [Math.cos(a), 0, -Math.sin(a)],
+        up: [Math.sin(a), 0, Math.cos(a)]
+      };
+    }
+    const scale = Math.min(W * 0.46 / spec.extU, H * 0.46 / spec.extV) * framing.zoom;
+    const cx = W / 2, cy = H / 2;
+
+    function project(d) {
+      const x = dot(d, b.right), y = dot(d, b.up), z = dot(d, b.f);
+      let u = 0, v = 0, valid = true, lon = null;
+      if (spec.mode === 'cyl') {
+        lon = Math.atan2(x, z);
+        const lat = Math.asin(clamp(y, -1, 1));
+        if (Math.abs(lat) > spec.maxLat * DEG) valid = false;
+        if (spec.v === 'lat') {
+          u = lon;
+          v = lat;
+        } else if (spec.v === 'tan') {
+          u = lon;
+          v = Math.tan(lat);
+        } else {
+          u = lon;
+          v = Math.log(Math.tan(Math.PI / 4 + lat / 2));
+        }
+      } else if (spec.mode === 'transverse' || spec.mode === 'transverseVedutismo') {
+        const latT = Math.asin(clamp(x, -1, 1));
+        const lonT = Math.atan2(y, z);
+        const maxLon = spec.maxLon || 180;
+        lon = lonT;
+        if (Math.abs(latT) > spec.maxLat * DEG || Math.abs(lonT) > maxLon * DEG) valid = false;
+        if (spec.mode === 'transverseVedutismo') u = 2 * Math.tan(latT / 2);
+        else if (spec.v === 'lat') u = latT;
+        else if (spec.v === 'tan') u = Math.tan(latT);
+        else u = Math.log(Math.tan(Math.PI / 4 + latT / 2));
+        v = -lonT;
+      } else if (spec.mode === 'vedutismo') {
+        lon = Math.atan2(x, z);
+        const lat = Math.asin(clamp(y, -1, 1));
+        if (Math.abs(lon) > spec.maxLon * DEG || Math.abs(lat) > spec.maxLat * DEG) valid = false;
+        u = 2 * Math.tan(lon / 2);
+        v = 2 * Math.tan(lat / 2);
+      } else if (spec.mode === 'littlePlanet') {
+        const theta = Math.acos(clamp(z, -1, 1));
+        if (theta > spec.maxTheta * DEG) valid = false;
+        const rho = Math.hypot(x, y);
+        const ux = rho > 1e-9 ? x / rho : 0;
+        const uy = rho > 1e-9 ? y / rho : 0;
+        const r = 2 * Math.tan(theta / 2);
+        u = r * ux;
+        v = r * uy;
+      } else {
+        const theta = Math.acos(clamp(z, -1, 1));
+        if (theta > spec.maxTheta * DEG) valid = false;
+        const rho = Math.hypot(x, y);
+        const ux = rho > 1e-9 ? x / rho : 0;
+        const uy = rho > 1e-9 ? y / rho : 0;
+        let r = 0;
+        if (spec.radial === 'stereo') r = 2 * Math.tan(theta / 2);
+        else if (spec.radial === 'theta') r = theta;
+        else if (spec.radial === 'tan') r = Math.tan(theta);
+        else if (spec.radial === 'equisolid') r = 2 * Math.sin(theta / 2);
+        else r = Math.sin(theta);
+        u = r * ux;
+        v = r * uy;
+      }
+      if (spec.flipV) v = -v;
+      return { x: cx + u * scale, y: cy - v * scale, valid, lon, u, v };
+    }
+
+    return { project, scale, cx, cy, W, H, basis: b, spec };
+  }
+
+  function framingSegments(dirs, proj) {
+    const out = [];
+    let seg = [];
+    let prev = null;
+    for (const d of dirs) {
+      const p = proj.project(d);
+      const seam = p.valid && prev && prev.valid &&
+        p.lon !== null && prev.lon !== null && Math.abs(p.lon - prev.lon) > Math.PI;
+      if (!p.valid || seam) {
+        if (seg.length) out.push(seg);
+        seg = [];
+      }
+      if (p.valid) seg.push(p);
+      prev = p;
+    }
+    if (seg.length) out.push(seg);
+    return out;
+  }
+
+  function strokeFramingDirs(ctx, dirs, proj, color, width, close = false, dash = null) {
+    const segs = framingSegments(dirs, proj);
+    if (!segs.length) return;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    if (dash) ctx.setLineDash(dash);
+    for (const seg of segs) {
+      if (seg.length < 2) continue;
+      ctx.beginPath();
+      for (let i = 0; i < seg.length; i++) {
+        if (i === 0) ctx.moveTo(seg[i].x, seg[i].y);
+        else ctx.lineTo(seg[i].x, seg[i].y);
+      }
+      if (close && seg.length === dirs.length) ctx.closePath();
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function fillFramingDirs(ctx, dirs, proj, color) {
+    const segs = framingSegments(dirs, proj);
+    if (segs.length !== 1 || segs[0].length !== dirs.length) return false;
+    const seg = segs[0];
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    for (let i = 0; i < seg.length; i++) {
+      if (i === 0) ctx.moveTo(seg[i].x, seg[i].y);
+      else ctx.lineTo(seg[i].x, seg[i].y);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    return true;
+  }
+
+  function drawFramingGround(ctx, proj) {
+    const W = framing.W, H = framing.H;
+    const name = framing.projection;
+    if (name === 'littlePlanet') {
+      // 小星球：中央是地平线以下的“地面”，天空围绕在外圈
+      const r = 2 * proj.scale;
+      if (r <= 1) return;
+      const grad = ctx.createRadialGradient(proj.cx, proj.cy, r * 0.08, proj.cx, proj.cy, r);
+      grad.addColorStop(0, 'rgba(2,7,13,.98)');
+      grad.addColorStop(0.7, 'rgba(4,12,22,.96)');
+      grad.addColorStop(1, 'rgba(7,20,36,.92)');
+      ctx.save();
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(proj.cx, proj.cy, r, 0, TAU);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(94,215,255,.32)';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(94,215,255,.09)';
+      ctx.lineWidth = 0.8;
+      for (let i = 1; i <= 3; i++) {
+        ctx.beginPath();
+        ctx.arc(proj.cx, proj.cy, r * i / 4, 0, TAU);
+        ctx.stroke();
+      }
+      ctx.font = '8px "Cascadia Code", Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(120,170,220,.42)';
+      ctx.fillText('地平线下', proj.cx, proj.cy + r * 0.46);
+      ctx.fillText('BELOW HORIZON', proj.cx, proj.cy + r * 0.64);
+      ctx.restore();
+      return;
+    }
+    if (name !== 'mercator' && name !== 'equirect' &&
+        name !== 'cylindrical' && name !== 'vedutismo') return;
+    if (Math.abs(framing.pitch) > 8) return;
+    const y0 = proj.cy;
+    if (y0 >= H) return;
+    const grad = ctx.createLinearGradient(0, y0, 0, H);
+    grad.addColorStop(0, 'rgba(4,10,18,.12)');
+    grad.addColorStop(1, 'rgba(2,5,10,.72)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, y0, W, H - y0);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, y0, W, H - y0);
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(80,125,190,.055)';
+    ctx.lineWidth = 1;
+    for (let x = -H; x < W + H; x += 22) {
+      ctx.beginPath();
+      ctx.moveTo(x, y0);
+      ctx.lineTo(x + (H - y0), H);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.save();
+    ctx.font = '9px "Cascadia Code", Consolas, monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = 'rgba(120,160,205,.3)';
+    ctx.fillText('地平线下 · BELOW HORIZON', W / 2, H - 12);
+    ctx.restore();
+  }
+
+  function drawFramingGrid(ctx, proj) {
+    ctx.save();
+    for (const alt of [0, 30, 60]) {
+      const dirs = [];
+      for (let az = 0; az <= 360; az += 4) dirs.push(dirFromAltAz(alt, az));
+      strokeFramingDirs(ctx, dirs, proj,
+        alt === 0 ? 'rgba(116,205,255,.46)' : 'rgba(105,155,220,.13)',
+        alt === 0 ? 1.25 : 0.7);
+    }
+    for (const az of [0, 90, 180, 270]) {
+      const dirs = [];
+      for (let alt = 0; alt <= 90; alt += 4) dirs.push(dirFromAltAz(alt, az));
+      strokeFramingDirs(ctx, dirs, proj, 'rgba(105,155,220,.10)', 0.65);
+    }
+    ctx.font = '10px "Cascadia Code", Consolas, monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const [az, label] of [[0, 'N'], [90, 'E'], [180, 'S'], [270, 'W']]) {
+      const p = proj.project(dirFromAltAz(0, az));
+      if (!p.valid) continue;
+      ctx.fillStyle = 'rgba(145,190,235,.72)';
+      ctx.fillText(label, p.x, p.y - 10);
+    }
+    ctx.restore();
+  }
+
+  function drawFramingSky(ctx, proj) {
+    const W = framing.W, H = framing.H;
+    const base = Math.min(W, H);
+    ctx.save();
+
+    // 银河柔光
+    for (const g of milkyWayGlow) {
+      if (g.d[1] < 0) continue;
+      const p = proj.project(g.d);
+      if (!p.valid) continue;
+      const r = clamp(g.radius * base * 0.9 * framing.zoom, 5, base * 0.55);
+      const a = g.alpha * 0.72;
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      grad.addColorStop(0, rgba(g.rgb, a));
+      grad.addColorStop(0.48, rgba(g.rgb, a * 0.55));
+      grad.addColorStop(1, rgba(g.rgb, 0));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, TAU);
+      ctx.fill();
+    }
+
+    // 暗尘带
+    for (const d of milkyWayDust) {
+      if (d.d[1] < 0) continue;
+      const p = proj.project(d.d);
+      if (!p.valid) continue;
+      const r = clamp(d.radius * base * 1.1 * framing.zoom, 3, base * 0.25);
+      const a = d.alpha * 0.62;
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      grad.addColorStop(0, `rgba(2,6,14,${a})`);
+      grad.addColorStop(0.6, `rgba(2,6,14,${a * 0.5})`);
+      grad.addColorStop(1, 'rgba(2,6,14,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, TAU);
+      ctx.fill();
+    }
+
+    // 银河星云颗粒
+    for (const s of milkyWayStars) {
+      if (s.d[1] < 0) continue;
+      const p = proj.project(s.d);
+      if (!p.valid) continue;
+      const size = Math.max(0.5, s.size * (base / 520));
+      ctx.fillStyle = rgba(s.color, s.alpha * 0.9);
+      ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+    }
+
+    // 背景星点
+    for (const s of stars) {
+      if (s.d[1] < 0) continue;
+      const p = proj.project(s.d);
+      if (!p.valid) continue;
+      const size = Math.max(0.55, s.size * 0.85);
+      ctx.fillStyle = rgba(s.color, s.alpha * 0.86);
+      if (size > 1.25) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size * 0.62, 0, TAU);
+        ctx.fill();
+      } else {
+        ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+      }
+    }
+
+    // 星座连线与亮星
+    for (const c of constellationCache) {
+      for (const [a, b] of c.lines) {
+        if (a[1] < 0 || b[1] < 0) continue;
+        strokeFramingDirs(ctx, [a, b], proj, 'rgba(170,205,255,.22)', 0.75);
+      }
+      for (const s of c.stars) {
+        if (s.d[1] < 0) continue;
+        const p = proj.project(s.d);
+        if (!p.valid) continue;
+        const size = clamp(2.7 - s.mag * 0.42, 0.7, 2.5);
+        ctx.fillStyle = rgba(s.color, 0.88);
+        if (size > 1.5) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, size * 0.7, 0, TAU);
+          ctx.fill();
+        } else {
+          ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+        }
+      }
+    }
+
+    if (W >= 760) {
+      ctx.font = '9px "Cascadia Code", Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (const c of constellationCache) {
+        if (c.labelDir[1] < 0) continue;
+        const p = proj.project(c.labelDir);
+        if (!p.valid) continue;
+        ctx.fillStyle = 'rgba(185,212,245,.56)';
+        ctx.fillText(c.name, p.x, p.y);
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawFramingCameras(ctx, proj) {
+    for (const cam of state.cameras) {
+      const dirs = sampleFootprint(cam, 8);
+      const selected = cam.id === state.selectedId;
+      const filled = fillFramingDirs(ctx, dirs, proj, rgba(cam.rgb, selected ? 0.18 : 0.085));
+      strokeFramingDirs(ctx, dirs, proj, rgba(cam.rgb, selected ? 0.98 : 0.8), selected ? 1.8 : 1.0, true);
+      const cp = proj.project(cam.f);
+      if (cp.valid) {
+        if (!filled) {
+          const rad = Math.min(framing.W, framing.H) * 0.17;
+          const glow = ctx.createRadialGradient(cp.x, cp.y, 0, cp.x, cp.y, rad);
+          glow.addColorStop(0, rgba(cam.rgb, selected ? 0.16 : 0.075));
+          glow.addColorStop(1, rgba(cam.rgb, 0));
+          ctx.save();
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(cp.x, cp.y, rad, 0, TAU);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.save();
+        ctx.fillStyle = rgba(cam.rgb, 0.95);
+        ctx.beginPath();
+        ctx.arc(cp.x, cp.y, selected ? 3 : 2.2, 0, TAU);
+        ctx.fill();
+        ctx.font = '9px "Cascadia Code", Consolas, monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillStyle = rgba(cam.rgb, 0.94);
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = 'rgba(0,0,0,.8)';
+        ctx.fillText(`${cam.focal}mm`, cp.x + 6, cp.y - 5);
+        ctx.restore();
+      }
+    }
+    if (framing.showGuides) {
+      const cam = selectedFramingCamera();
+      if (cam) drawFramingGuides(ctx, proj, cam);
+    }
+  }
+
+  function drawFramingGuides(ctx, proj, cam) {
+    const f = cam.f, right = cam.right, up = cam.up;
+    const th = cam.tanH, tv = cam.tanV;
+    const dirAt = (a, b) => vnorm(add(add(f, mul(right, a * th)), mul(up, b * tv)));
+    const line = (a, b, color, width, dash) => {
+      const arr = [];
+      for (let i = 0; i <= 24; i++) {
+        const t = -1 + i / 12;
+        arr.push(a === null ? dirAt(t, b) : dirAt(a, t));
+      }
+      strokeFramingDirs(ctx, arr, proj, color, width, false, dash);
+    };
+    const soft = rgba(cam.rgb, 0.34);
+    const strong = rgba(cam.rgb, 0.52);
+    line(-1 / 3, null, soft, 0.75, [3, 4]);
+    line(1 / 3, null, soft, 0.75, [3, 4]);
+    line(null, -1 / 3, soft, 0.75, [3, 4]);
+    line(null, 1 / 3, soft, 0.75, [3, 4]);
+    line(0, null, strong, 0.85, [2, 4]);
+    line(null, 0, strong, 0.85, [2, 4]);
+  }
+
+  function drawFramingTrails(ctx, proj) {
+    const trails = state.animMeteors || [];
+    const many = trails.length > 80;
+    for (const m of trails) {
+      const dirs = [];
+      for (let i = 0; i <= 24; i++) {
+        dirs.push(meteorPoint(m.radiant, m.dir, lerp(m.d0, m.d1, i / 24)));
+      }
+      if (!dirs.some(d => d[1] >= 0)) continue;
+      const col = m.rgb || (m.captured ? [255, 238, 196] : [255, 122, 128]);
+      const dash = m.broken ? [4, 3] : null;
+      strokeFramingDirs(ctx, dirs, proj, rgba(col, many ? 0.18 : 0.3), 5.5, false);
+      strokeFramingDirs(ctx, dirs, proj, rgba(col, many ? 0.55 : (m.captured ? 0.95 : 0.75)), 1.55, false, dash);
+    }
+  }
+
+  function drawFramingRadiant(ctx, proj) {
+    const rd = dirFromAltAz(state.radiant.alt, state.radiant.az);
+    const p = proj.project(rd);
+    if (!p.valid) return;
+    const below = rd[1] < 0;
+    const col = below ? [255, 124, 140] : [255, 210, 122];
+    ctx.save();
+    ctx.strokeStyle = rgba(col, 0.55);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 11, 0, TAU);
+    ctx.stroke();
+    ctx.fillStyle = rgba(col, 0.95);
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = rgba(col, 0.85);
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const r = i % 2 === 0 ? 7 : 2.4;
+      const a = i * Math.PI / 4;
+      const x = p.x + Math.cos(a) * r;
+      const y = p.y + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = '9px "Cascadia Code", Consolas, monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.shadowBlur = 4;
+    ctx.fillStyle = rgba(col, 0.92);
+    ctx.fillText('辐射点', p.x + 15, p.y);
+    ctx.restore();
+  }
+
+  function updateFramingMeta() {
+    const spec = FRAMING_PROJECTIONS[framing.projection] || FRAMING_PROJECTIONS.stereographic;
+    const trails = state.animMeteors ? state.animMeteors.length : 0;
+    if (el.framingMeta) {
+      const note = spec.mode === 'transverse' || spec.mode === 'transverseVedutismo'
+        ? ' · 旋转 90° 的竖向条带'
+        : spec.mode === 'littlePlanet'
+          ? ' · 从天顶向下看'
+          : '';
+      const sel = selectedFramingCamera();
+      const selText = sel ? ` · 已选 ${sel.focal}mm ALT ${fmt(sel.alt, 0)}° / AZ ${fmt(sel.az, 0)}° / ROLL ${fmt(sel.roll * RAD, 0)}°` : '';
+      el.framingMeta.textContent = `${spec.label} · ${state.cameras.length} 个构图框 · ${trails} 条代表轨迹${note}${selText}`;
+    }
+    if (el.framingZoomVal) el.framingZoomVal.textContent = framing.zoom.toFixed(2) + '×';
+    if (el.framingZoom && document.activeElement !== el.framingZoom) {
+      el.framingZoom.value = String(framing.zoom);
+    }
+  }
+
+  function drawFraming() {
+    if (!framing.open) return;
+    const size = resizeCanvas(el.framingCanvas, framingCtx);
+    if (!size.w || !size.h) return;
+    framing.W = size.w;
+    framing.H = size.h;
+    const ctx = framingCtx;
+    ctx.clearRect(0, 0, size.w, size.h);
+    const bg = ctx.createRadialGradient(size.w * 0.5, size.h * 0.45, 0, size.w * 0.5, size.h * 0.5, Math.max(size.w, size.h) * 0.72);
+    bg.addColorStop(0, '#071426');
+    bg.addColorStop(1, '#02060e');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, size.w, size.h);
+
+    const proj = makeFramingProjector();
+    const frameSpec = proj.spec;
+    if (frameSpec.frame === 'circle') {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(116,174,255,.13)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(proj.cx, proj.cy, frameSpec.extU * proj.scale, 0, TAU);
+      ctx.stroke();
+      ctx.restore();
+    } else if (frameSpec.frame === 'rect') {
+      const fw = 2 * frameSpec.extU * proj.scale;
+      const fh = 2 * frameSpec.extV * proj.scale;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(116,174,255,.16)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(proj.cx - fw / 2, proj.cy - fh / 2, fw, fh);
+      ctx.restore();
+    }
+    drawFramingGround(ctx, proj);
+    if (framing.showSky) drawFramingSky(ctx, proj);
+    if (framing.showGrid) drawFramingGrid(ctx, proj);
+    drawFramingCameras(ctx, proj);
+    drawFramingTrails(ctx, proj);
+    drawFramingRadiant(ctx, proj);
+
+    // 顶部投影标识
+    ctx.save();
+    ctx.font = '9px "Cascadia Code", Consolas, monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = 'rgba(150,190,235,.5)';
+    const spec = FRAMING_PROJECTIONS[framing.projection] || FRAMING_PROJECTIONS.stereographic;
+    const cnLabel = spec.label.toUpperCase();
+    const enLabel = spec.en.toUpperCase();
+    const head = enLabel === cnLabel ? cnLabel : `${cnLabel} · ${enLabel}`;
+    const viewText = spec.mode === 'littlePlanet'
+      ? '天顶向下'
+      : `视角 ALT ${fmt(framing.pitch, 0)}° / AZ ${fmt(framing.yaw, 0)}°`;
+    ctx.fillText(`${head}  ·  ${viewText}`, 14, 12);
+    ctx.restore();
+
+    if (!state.animMeteors || !state.animMeteors.length) {
+      ctx.save();
+      ctx.font = '10px "Cascadia Code", Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillStyle = 'rgba(140,170,210,.55)';
+      ctx.fillText('运行一次流星模拟后，代表轨迹会保留在构图窗口中', size.w / 2, size.h - 14);
+      ctx.restore();
+    }
+    if (!state.cameras.length) {
+      ctx.save();
+      ctx.font = '10px "Cascadia Code", Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(255,180,140,.65)';
+      ctx.fillText('还没有镜头，添加镜头组后会显示构图框', size.w / 2, size.h * 0.5);
+      ctx.restore();
+    }
+
+    ctx.strokeStyle = 'rgba(116,174,255,.12)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, size.w - 1, size.h - 1);
+    updateFramingMeta();
+  }
+
+  function requestFramingDraw() {
+    if (!framing.open || framing.raf) return;
+    framing.raf = requestAnimationFrame(() => {
+      framing.raf = 0;
+      drawFraming();
+    });
+  }
+
+  function defaultFramingView() {
+    const spec = FRAMING_PROJECTIONS[framing.projection] || FRAMING_PROJECTIONS.stereographic;
+    if (spec.mode === 'transverse' || spec.mode === 'transverseVedutismo') {
+      return { yaw: 0, pitch: 90 };
+    }
+    if (spec.mode === 'cyl' || spec.mode === 'vedutismo') {
+      return { yaw: 0, pitch: 0 };
+    }
+    if (framing.projection === 'rectilinear') {
+      const cam = state.cameras.find(c => c.id === state.selectedId) || state.cameras[0];
+      if (cam) return { yaw: cam.az, pitch: clamp(cam.alt, -85, 85) };
+      return { yaw: state.viewYaw, pitch: clamp(state.viewPitch, 15, 70) };
+    }
+    return { yaw: 0, pitch: 90 };
+  }
+
+  function selectedFramingCamera() {
+    return state.cameras.find(c => c.id === state.selectedId) || null;
+  }
+
+  function aimFramingAt(alt, az) {
+    framing.yaw = ((az % 360) + 360) % 360;
+    framing.pitch = clamp(alt, -89, 89);
+    framing.zoom = 1;
+    updateFramingMeta();
+    requestFramingDraw();
+  }
+
+  function pointInPolygon(points, x, y) {
+    let inside = false;
+    for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+      const xi = points[i].x, yi = points[i].y;
+      const xj = points[j].x, yj = points[j].y;
+      if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+    }
+    return inside;
+  }
+
+  function framingCameraAt(x, y) {
+    if (!state.cameras.length) return null;
+    const proj = makeFramingProjector();
+    let best = null, bestDist = Infinity;
+    for (const cam of state.cameras) {
+      const cp = proj.project(cam.f);
+      const dirs = sampleFootprint(cam, 8);
+      const pts = [];
+      for (const d of dirs) {
+        const p = proj.project(d);
+        if (p.valid) pts.push(p);
+      }
+      let hit = pts.length >= 3 && pointInPolygon(pts, x, y);
+      if (!hit && cp.valid && Math.hypot(x - cp.x, y - cp.y) <= 18) hit = true;
+      if (!hit) continue;
+      const dist = cp.valid ? Math.hypot(x - cp.x, y - cp.y) : 0;
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = cam;
+      }
+    }
+    return best;
+  }
+
+  function selectFramingCamera(cam) {
+    if (!cam) return;
+    state.selectedId = cam.id;
+    state.miniDirty = true;
+    updateRollUI();
+    updateFramingMeta();
+    requestFramingDraw();
+  }
+
+  function openFraming() {
+    framing.open = true;
+    const v = defaultFramingView();
+    framing.yaw = v.yaw;
+    framing.pitch = v.pitch;
+    framing.zoom = 1;
+    framing.drag = null;
+    el.framingProjection.value = framing.projection;
+    el.framingSky.checked = framing.showSky;
+    el.framingGrid.checked = framing.showGrid;
+    el.framingGuides.checked = framing.showGuides;
+    el.framingModal.classList.add('show');
+    requestFramingDraw();
+    setTimeout(requestFramingDraw, 60);
+  }
+
+  function closeFraming() {
+    framing.open = false;
+    framing.drag = null;
+    if (framing.raf) {
+      cancelAnimationFrame(framing.raf);
+      framing.raf = 0;
+    }
+    el.framingModal.classList.remove('show');
+    el.framingCanvas.classList.remove('dragging');
+  }
+
+  function resetFramingView() {
+    const v = defaultFramingView();
+    framing.yaw = v.yaw;
+    framing.pitch = v.pitch;
+    framing.zoom = 1;
+    updateFramingMeta();
+    requestFramingDraw();
+  }
+
+  el.framingBtn.addEventListener('click', openFraming);
+  el.closeFramingBtn.addEventListener('click', closeFraming);
+  el.framingModal.addEventListener('click', e => {
+    if (e.target === el.framingModal) closeFraming();
+  });
+  el.framingProjection.addEventListener('change', () => {
+    framing.projection = el.framingProjection.value;
+    const v = defaultFramingView();
+    framing.yaw = v.yaw;
+    framing.pitch = v.pitch;
+    framing.zoom = 1;
+    updateFramingMeta();
+    requestFramingDraw();
+  });
+  el.framingSky.addEventListener('change', () => {
+    framing.showSky = el.framingSky.checked;
+    requestFramingDraw();
+  });
+  el.framingGrid.addEventListener('change', () => {
+    framing.showGrid = el.framingGrid.checked;
+    requestFramingDraw();
+  });
+  el.framingGuides.addEventListener('change', () => {
+    framing.showGuides = el.framingGuides.checked;
+    requestFramingDraw();
+  });
+  el.framingRadiantBtn.addEventListener('click', () => {
+    aimFramingAt(state.radiant.alt, state.radiant.az);
+    showToast('视角已对准辐射点');
+  });
+  el.framingSelectedBtn.addEventListener('click', () => {
+    const cam = selectedFramingCamera();
+    if (!cam) {
+      showToast('先在构图窗口中点击一个构图框');
+      return;
+    }
+    aimFramingAt(cam.alt, cam.az);
+    showToast(`视角已对准 ${cam.focal}mm`);
+  });
+  el.framingZoom.addEventListener('input', () => {
+    framing.zoom = clamp(parseFloat(el.framingZoom.value) || 1, 0.45, 3);
+    updateFramingMeta();
+    requestFramingDraw();
+  });
+  el.framingResetBtn.addEventListener('click', resetFramingView);
+  el.framingExportBtn.addEventListener('click', () => {
+    if (!framing.open) return;
+    const a = document.createElement('a');
+    a.download = `meteor-framing-${framing.projection}.png`;
+    a.href = el.framingCanvas.toDataURL('image/png');
+    a.click();
+    showToast('构图已导出 PNG');
+  });
+  el.framingCanvas.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    framing.drag = {
+      x: e.clientX,
+      y: e.clientY,
+      yaw: framing.yaw,
+      pitch: framing.pitch,
+      moved: false
+    };
+    el.framingCanvas.setPointerCapture(e.pointerId);
+    el.framingCanvas.classList.add('dragging');
+  });
+  el.framingCanvas.addEventListener('pointermove', e => {
+    if (!framing.drag) return;
+    const dx = e.clientX - framing.drag.x;
+    const dy = e.clientY - framing.drag.y;
+    if (Math.hypot(dx, dy) > 4) framing.drag.moved = true;
+    framing.yaw = ((framing.drag.yaw - dx * 0.22 / framing.zoom) % 360 + 360) % 360;
+    framing.pitch = clamp(framing.drag.pitch + dy * 0.22 / framing.zoom, -89, 89);
+    requestFramingDraw();
+  });
+  const endFramingDrag = (e, allowClick) => {
+    const wasClick = allowClick && framing.drag && !framing.drag.moved;
+    framing.drag = null;
+    el.framingCanvas.classList.remove('dragging');
+    if (e && el.framingCanvas.hasPointerCapture(e.pointerId)) {
+      el.framingCanvas.releasePointerCapture(e.pointerId);
+    }
+    if (wasClick && e && framing.open) {
+      const rect = el.framingCanvas.getBoundingClientRect();
+      const cam = framingCameraAt(e.clientX - rect.left, e.clientY - rect.top);
+      if (cam) {
+        selectFramingCamera(cam);
+      } else {
+        state.selectedId = null;
+        state.miniDirty = true;
+        updateRollUI();
+        updateFramingMeta();
+        requestFramingDraw();
+      }
+    }
+  };
+  el.framingCanvas.addEventListener('pointerup', e => endFramingDrag(e, true));
+  el.framingCanvas.addEventListener('pointercancel', e => endFramingDrag(e, false));
+  el.framingCanvas.addEventListener('dblclick', e => {
+    const rect = el.framingCanvas.getBoundingClientRect();
+    const cam = framingCameraAt(e.clientX - rect.left, e.clientY - rect.top);
+    if (cam) {
+      selectFramingCamera(cam);
+      aimFramingAt(cam.alt, cam.az);
+      showToast(`视角已对准 ${cam.focal}mm`);
+    } else {
+      resetFramingView();
+    }
+  });
+  el.framingCanvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    framing.zoom = clamp(framing.zoom * Math.exp(-e.deltaY * 0.0012), 0.45, 3);
+    updateFramingMeta();
+    requestFramingDraw();
+  }, { passive: false });
+
+  // ---------------------------------------------------------------------------
+  // rendering loop & resizing
+  // ---------------------------------------------------------------------------
+  let rafId = 0;
+  let lastNow = 0;
+  const MAX_FRAMES = parseInt(QUERY.get('frames') || '0', 10) || 0;
+  const BENCH_MODE = QUERY.has('bench');
+  let frameCount = 0;
+  let benchCpu = 0;
+  let benchMax = 0;
+  let benchStart = 0;
+
+  function resizeCanvas(canvas, ctx) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.max(1, canvas.clientWidth);
+    const h = Math.max(1, canvas.clientHeight);
+    const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+    if (canvas.width !== pw || canvas.height !== ph) {
+      canvas.width = pw;
+      canvas.height = ph;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { w, h };
+  }
+
+  function resizeAll() {
+    const sky = resizeCanvas(el.skyCanvas, skyCtx);
+    state.canvasW = sky.w;
+    state.canvasH = sky.h;
+    const mini = resizeCanvas(el.miniCanvas, miniCtx);
+    state.miniW = mini.w;
+    state.miniH = mini.h;
+    state.heatDirty = true;
+    state.miniDirty = true;
+  }
+
+  function loop(now) {
+    const cpuStart = performance.now();
+    state.time = now;
+    const dt = lastNow ? Math.min(50, now - lastNow) : 16;
+    lastNow = now;
+
+    if (state.coverageDirty) {
+      recomputeCoverage();
+      state.coverageDirty = false;
+    }
+    if (state.metricsDirty) {
+      computeMetrics();
+      state.metricsDirty = false;
+    }
+    if (state.heatDirty) {
+      const quality = state.interacting ? 260 : 440;
+      renderHeatmap(quality);
+    }
+    if (state.miniDirty) {
+      drawMini();
+      state.miniDirty = false;
+    }
+    drawGlobe(now);
+    frameCount++;
+    if (BENCH_MODE) {
+      if (!benchStart) benchStart = now;
+      const cpu = performance.now() - cpuStart;
+      benchCpu += cpu;
+      if (cpu > benchMax) benchMax = cpu;
+      if (frameCount >= 90) {
+        const avg = benchCpu / frameCount;
+        document.title = `BENCH ${avg.toFixed(2)}ms/frame`;
+        const pre = document.createElement('pre');
+        pre.id = 'benchOut';
+        pre.style.cssText = 'position:fixed;left:-9999px;top:0';
+        pre.textContent = JSON.stringify({
+          frames: frameCount,
+          avgCpuMs: +avg.toFixed(2),
+          maxCpuMs: +benchMax.toFixed(2),
+          wallMs: +(now - benchStart).toFixed(1)
+        });
+        document.body.appendChild(pre);
+        return;
+      }
+    }
+    if (MAX_FRAMES && frameCount >= MAX_FRAMES) return;
+    if (!STATIC_MODE) rafId = requestAnimationFrame(loop);
+  }
+
+  // ---------------------------------------------------------------------------
+  // UI helpers
+  // ---------------------------------------------------------------------------
+  let toastTimer = 0;
+  function showToast(msg) {
+    el.toast.textContent = msg;
+    el.toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.toast.classList.remove('show'), 2600);
+  }
+
+  function currentFocal() {
+    return clamp(parseInt(el.focalRange.value, 10) || 14, 10, 200);
+  }
+
+  function currentSensorKey() {
+    return el.sensorSelect.value || 'ff';
+  }
+
+  function updateFovReadout() {
+    const focal = currentFocal();
+    const sensor = SENSORS[currentSensorKey()];
+    if (document.activeElement !== el.focalInput) el.focalInput.value = String(focal);
+    const hf = 2 * Math.atan(sensor.w / (2 * focal)) * RAD;
+    const vf = 2 * Math.atan(sensor.h / (2 * focal)) * RAD;
+    const df = 2 * Math.atan(Math.hypot(sensor.w, sensor.h) / (2 * focal)) * RAD;
+    el.hfov.textContent = fmt(hf, 1) + '°';
+    el.vfov.textContent = fmt(vf, 1) + '°';
+    el.dfov.textContent = fmt(df, 1) + '°';
+    for (const chip of el.focalChips.querySelectorAll('.chip')) {
+      chip.classList.toggle('active', Number(chip.dataset.focal) === focal);
+    }
+  }
+
+  function renderGroupList() {
+    const groups = state.groups;
+    if (!groups.length) {
+      el.groupList.innerHTML = '<div style="font-size:10px;color:var(--dim);padding:8px 2px">还没有镜头组。选择焦距和数量后添加。</div>';
+    } else {
+      el.groupList.innerHTML = groups.map(g => {
+        const sensor = SENSORS[g.sensorKey];
+        const hf = 2 * Math.atan(sensor.w / (2 * g.focal)) * RAD;
+        const vf = 2 * Math.atan(sensor.h / (2 * g.focal)) * RAD;
+        return `<div class="group-card" data-group="${g.id}">
+          <span class="group-dot" style="color:${g.color.hex};background:${g.color.hex}"></span>
+          <div class="group-main">
+            <div class="group-title"><b>${g.focal}mm</b><span>× ${g.count}</span></div>
+            <div class="group-sub">${sensor.name} · ${fmt(hf, 1)}° × ${fmt(vf, 1)}°</div>
+          </div>
+          <button class="group-del" data-del="${g.id}" title="删除该组" aria-label="删除该组">×</button>
+        </div>`;
+      }).join('');
+    }
+    el.totalLenses.textContent = `共 ${state.cameras.length} 台相机 · ${groups.length} 组镜头`;
+  }
+
+  function updateRadiantUI() {
+    const alt = state.radiant.alt, az = state.radiant.az;
+    el.radiantAlt.textContent = fmt(alt, 1) + '°';
+    el.radiantAz.textContent = fmt(az, 1) + '°';
+    el.radiantAltRange.value = String(Math.round(alt));
+    el.radiantAzRange.value = String(Math.round(az) % 360);
+    el.radiantAltVal.textContent = String(Math.round(alt));
+    el.radiantAzVal.textContent = String(Math.round(az) % 360);
+    el.radiantMode.style.display = state.manualRadiant ? 'inline-block' : 'none';
+  }
+
+  function updateShowerMeta() {
+    if (state.shower === 'custom') {
+      el.showerMeta.innerHTML = '手动设置辐射点 · 不再随地点 / 时间变化';
+      return;
+    }
+    const s = SHOWERS[state.shower];
+    if (!s) return;
+    el.showerMeta.innerHTML = `ZHR <b>${s.zhr}</b> · 峰值 <b>${s.peak}</b> · 辐射点 <b>${s.meta}</b>`;
+  }
+
+  function updateSimUI() {
+    const r = state.results;
+    if (!r) {
+      el.simStatus.textContent = '未运行';
+      el.simBody.innerHTML = '<div class="sim-empty">运行模拟，估算当前镜头布局能拍到多少颗流星。</div>' +
+        '<div class="sim-actions"><button class="btn ghost tiny" id="runSimBtn">运行模拟</button></div>';
+      const run = $('runSimBtn');
+      if (run) run.addEventListener('click', simulateMeteors);
+      return;
+    }
+    if (r.stale) {
+      el.simStatus.textContent = '参数已变更';
+      el.simBody.innerHTML = `<div class="sim-empty">镜头或辐射点已调整，请重新运行模拟。</div>`;
+      return;
+    }
+    el.simStatus.textContent = '已完成';
+    const warn = r.visible === 0
+      ? '<div class="sim-warning">辐射点在地平线以下，当前地点 / 时间看不到这场流星雨。</div>'
+      : '';
+    el.simBody.innerHTML = `
+      <div class="sim-numbers"><b>${r.captured}</b><span>/ ${r.visible} 颗可观测</span></div>
+      <div class="sim-bar"><i style="width:${clamp(r.rate, 0, 100)}%"></i></div>
+      <div class="sim-stats">
+        <span>捕捉率 <b>${fmt(r.rate, 1)}%</b></span>
+        <span>漏拍 <b>${r.missed}</b></span>
+        <span>平均 <b>${fmt(r.avgCams, 1)}×</b></span>
+      </div>
+      <div class="sim-stats sim-stats-sub">
+        <span>完整轨迹 <b>${fmt(r.fullRate || 0, 1)}%</b></span>
+        <span>断轨 <b>${r.broken || 0}</b></span>
+        <span>缺头尾 <b>${r.partial || 0}</b></span>
+      </div>
+      <div class="sim-legend">
+        <span><i class="trail-cam"></i>捕捉 · 相机色</span>
+        <span><i style="background:#ff7a80;box-shadow:0 0 6px #ff7a80"></i>漏拍</span>
+      </div>
+      <div class="sim-note">${(METEOR_MODELS[r.model] || METEOR_MODELS.realistic).short} · 天球显示 ${r.displayTrails || (state.animMeteors ? state.animMeteors.length : 0)} 条代表轨迹 · ${!state.showMeteors ? '轨迹已隐藏' : state.persistTrails ? '颜色对应捕捉相机' : '仅动画显示'}</div>
+      <div class="sim-actions">
+        <button class="btn ghost tiny" id="replayBtn">重播动画</button>
+        <button class="btn ghost tiny" id="rerunBtn">重新模拟</button>
+      </div>
+      ${warn}`;
+    const replay = $('replayBtn');
+    if (replay) replay.addEventListener('click', () => {
+      if (!state.animMeteors) return;
+      state.anim = { start: performance.now() + 120, meteors: state.animMeteors, duration: 1850 };
+    });
+    const rerun = $('rerunBtn');
+    if (rerun) rerun.addEventListener('click', simulateMeteors);
+  }
+
+  // ---------------------------------------------------------------------------
+  // astronomy
+  // ---------------------------------------------------------------------------
+  function getObservationDate() {
+    const v = state.datetime;
+    if (!v) return new Date();
+    const m = v.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (!m) return new Date();
+    const utc = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) - state.tz * 3600 * 1000;
+    return new Date(utc);
+  }
+
+  function radecToAltAz(ra, dec, lat, lon, date) {
+    const jd = date.getTime() / 86400000 + 2440587.5;
+    let gmst = (280.46061837 + 360.98564736629 * (jd - 2451545.0)) % 360;
+    if (gmst < 0) gmst += 360;
+    const lst = ((gmst + lon) % 360 + 360) % 360;
+    let H = ((lst - ra + 180) % 360 + 360) % 360 - 180;
+    const sinAlt = Math.sin(dec * DEG) * Math.sin(lat * DEG) +
+      Math.cos(dec * DEG) * Math.cos(lat * DEG) * Math.cos(H * DEG);
+    const alt = Math.asin(clamp(sinAlt, -1, 1)) * RAD;
+    let az = Math.atan2(
+      -Math.cos(dec * DEG) * Math.sin(H * DEG),
+      Math.sin(dec * DEG) * Math.cos(lat * DEG) - Math.cos(dec * DEG) * Math.sin(lat * DEG) * Math.cos(H * DEG)
+    ) * RAD;
+    if (az < 0) az += 360;
+    return { alt, az };
+  }
+
+  function computeRadiantForShower() {
+    if (state.shower === 'custom') {
+      state.manualRadiant = true;
+      updateRadiantUI();
+      return;
+    }
+    const s = SHOWERS[state.shower];
+    if (!s) return;
+    const dt = getObservationDate();
+    const r = radecToAltAz(s.ra, s.dec, state.lat, state.lon, dt);
+    state.manualRadiant = false;
+    state.radiant.alt = clamp(r.alt, -90, 90);
+    state.radiant.az = ((r.az % 360) + 360) % 360;
+    updateRadiantUI();
+    state.miniDirty = true;
+    invalidateSimulation();
+  }
+
+  // ---------------------------------------------------------------------------
+  // group actions
+  // ---------------------------------------------------------------------------
+  function addGroup({ focal, sensorKey, count, silent = false }) {
+    const sensor = SENSORS[sensorKey];
+    if (!sensor) return;
+    const total = state.cameras.length;
+    const room = 48 - total;
+    if (room <= 0) {
+      showToast('最多 48 台相机；请先删除一些镜头组。');
+      return;
+    }
+    const n = clamp(Math.min(count, room), 1, 24);
+    if (n < count) showToast(`已达上限，本组只添加 ${n} 台。`);
+    const color = GROUP_COLORS[state.groups.length % GROUP_COLORS.length];
+    const group = {
+      id: state.nextGroupId++,
+      focal,
+      sensorKey,
+      sensor,
+      count: n,
+      color,
+      cameras: []
+    };
+    state.groups.push(group);
+    spawnGroupCameras(group);
+    if (group.cameras.length) state.selectedId = group.cameras[0].id;
+    renderGroupList();
+    updateRollUI();
+    state.coverageDirty = true;
+    state.heatDirty = true;
+    state.miniDirty = true;
+    state.metricsDirty = true;
+    invalidateSimulation();
+    if (!silent) showToast(`已添加 ${n} 台 ${focal}mm 镜头，拖动调整位置`);
+  }
+
+  function removeGroup(id) {
+    const idx = state.groups.findIndex(g => g.id === id);
+    if (idx < 0) return;
+    const g = state.groups[idx];
+    state.cameras = state.cameras.filter(c => c.groupId !== id);
+    state.groups.splice(idx, 1);
+    if (state.selectedId && !state.cameras.some(c => c.id === state.selectedId)) state.selectedId = null;
+    renderGroupList();
+    updateRollUI();
+    state.coverageDirty = true;
+    state.heatDirty = true;
+    state.miniDirty = true;
+    state.metricsDirty = true;
+    invalidateSimulation();
+    showToast(`已删除 ${g.focal}mm × ${g.count} 镜头组`);
+  }
+
+  function clearAll() {
+    state.cameras = [];
+    state.groups = [];
+    state.selectedId = null;
+    state.hoverId = null;
+    state.results = null;
+    state.anim = null;
+    state.animMeteors = null;
+    renderGroupList();
+    updateRollUI();
+    updateSimUI();
+    state.coverageDirty = true;
+    state.heatDirty = true;
+    state.miniDirty = true;
+    state.metricsDirty = true;
+    showToast('已清空所有镜头');
+  }
+
+  // ---------------------------------------------------------------------------
+  // pointer interaction: globe
+  // ---------------------------------------------------------------------------
+  const pointers = new Map();
+  let dragMode = null; // 'orbit' | 'camera' | 'radiant' | 'roll'
+  let dragCam = null;
+  let rollCam = null;
+  let rollStart = null;
+  let dragStart = null;
+  let orbitStart = null;
+  let lastPointer = null;
+  let pinchStart = 0;
+  let pinchZoom = 1;
+
+  function localPoint(e) {
+    const rect = el.skyCanvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function hitTestGlobe(x, y) {
+    let best = null, bestDist = 15;
+    for (const cam of state.cameras) {
+      const p = projectDir(cam.f);
+      if (p.depth < 0.01) continue;
+      const d = Math.hypot(p.x - x, p.y - y);
+      if (d < bestDist) { bestDist = d; best = cam; }
+    }
+    if (best) return { type: 'camera', cam: best };
+    const rp = projectDir(dirFromAltAz(state.radiant.alt, state.radiant.az));
+    if (rp.depth >= 0 && Math.hypot(rp.x - x, rp.y - y) < 18) return { type: 'radiant' };
+    return null;
+  }
+
+  function updateTooltip(hit, x, y) {
+    if (!hit) {
+      el.tooltip.classList.remove('show');
+      return;
+    }
+    let html = '';
+    if (hit.type === 'camera') {
+      const c = hit.cam;
+      const s = SENSORS[c.sensorKey];
+      html = `<b>${c.focal}mm · ${s.name}</b>
+        <span>视场 ${fmt(c.hfov * RAD, 1)}° × ${fmt(c.vfov * RAD, 1)}°</span>
+        <span>ALT ${fmt(c.alt, 1)}° · AZ ${fmt(c.az, 1)}° · ROLL ${fmt(c.roll * RAD, 0)}°</span>
+        <span>拖动调整指向 · Shift 拖动旋转画幅</span>`;
+    } else {
+      html = `<b>流星雨辐射点</b>
+        <span>ALT ${fmt(state.radiant.alt, 1)}° · AZ ${fmt(state.radiant.az, 1)}°</span>
+        <span>拖动可调整辐射点</span>`;
+    }
+    el.tooltip.innerHTML = html;
+    const mainRect = el.main.getBoundingClientRect();
+    let tx = x + 16, ty = y + 16;
+    const tw = 210, th = 76;
+    if (tx + tw > mainRect.width - 10) tx = x - tw - 12;
+    if (ty + th > mainRect.height - 10) ty = y - th - 12;
+    el.tooltip.style.left = tx + 'px';
+    el.tooltip.style.top = ty + 'px';
+    el.tooltip.classList.add('show');
+  }
+
+  function setCameraAltAz(cam, alt, az) {
+    cam.alt = clamp(alt, 0, 90);
+    cam.az = ((az % 360) + 360) % 360;
+    updateCameraBasis(cam);
+    state.coverageDirty = true;
+    state.heatDirty = true;
+    state.miniDirty = true;
+    state.metricsDirty = true;
+    invalidateSimulation();
+  }
+
+  function setRadiantFromDrag(alt, az) {
+    state.radiant.alt = clamp(alt, -90, 90);
+    state.radiant.az = ((az % 360) + 360) % 360;
+    state.manualRadiant = true;
+    if (state.shower !== 'custom') {
+      // keep the shower name, but mark the radiant as manually adjusted
+    }
+    updateRadiantUI();
+    state.miniDirty = true;
+    invalidateSimulation();
+  }
+
+  function onSkyPointerDown(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const p = localPoint(e);
+    pointers.set(e.pointerId, p);
+    el.skyCanvas.setPointerCapture(e.pointerId);
+    if (pointers.size === 2) {
+      const arr = [...pointers.values()];
+      pinchStart = Math.hypot(arr[0].x - arr[1].x, arr[0].y - arr[1].y);
+      pinchZoom = state.zoom;
+      dragMode = null;
+      return;
+    }
+    const hit = hitTestGlobe(p.x, p.y);
+    lastPointer = p;
+    dragStart = p;
+    if (hit && hit.type === 'camera') {
+      state.selectedId = hit.cam.id;
+      state.miniDirty = true;
+      updateRollUI();
+      if (e.shiftKey) {
+        dragMode = 'roll';
+        dragCam = null;
+        rollCam = hit.cam;
+        const cp = projectDir(hit.cam.f);
+        rollStart = {
+          angle: Math.atan2(p.y - cp.y, p.x - cp.x),
+          roll: hit.cam.roll
+        };
+        updateTooltip({ type: 'camera', cam: hit.cam }, p.x, p.y);
+      } else {
+        dragMode = 'camera';
+        dragCam = hit.cam;
+      }
+      el.skyCanvas.classList.add('dragging');
+    } else if (hit && hit.type === 'radiant') {
+      dragMode = 'radiant';
+      state.selectedId = null;
+      updateRollUI();
+      state.miniDirty = true;
+      el.skyCanvas.classList.add('dragging');
+    } else {
+      dragMode = 'orbit';
+      orbitStart = { x: p.x, y: p.y, yaw: state.viewYaw, pitch: state.viewPitch };
+      state.selectedId = null;
+      updateRollUI();
+      state.miniDirty = true;
+      el.skyCanvas.classList.add('dragging');
+    }
+    state.interacting = true;
+  }
+
+  function onSkyPointerMove(e) {
+    const p = localPoint(e);
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, p);
+    if (pointers.size === 2) {
+      const arr = [...pointers.values()];
+      const dist = Math.hypot(arr[0].x - arr[1].x, arr[0].y - arr[1].y);
+      if (pinchStart > 0) {
+        state.zoom = clamp(pinchZoom * dist / pinchStart, 0.65, 1.8);
+        state.heatDirty = true;
+      }
+      return;
+    }
+    if (dragMode === 'roll' && rollCam && rollStart) {
+      const cp = projectDir(rollCam.f);
+      if (cp.depth < 0.01) return;
+      let delta = Math.atan2(p.y - cp.y, p.x - cp.x) - rollStart.angle;
+      while (delta > Math.PI) delta -= TAU;
+      while (delta < -Math.PI) delta += TAU;
+      setCameraRoll(rollCam, rollStart.roll + delta);
+      updateTooltip({ type: 'camera', cam: rollCam }, p.x, p.y);
+      return;
+    }
+    if (dragMode === 'camera' && dragCam) {
+      const d = screenToDir(p.x, p.y);
+      const a = altAzFromDir(d);
+      setCameraAltAz(dragCam, a.alt, a.az);
+      updateTooltip({ type: 'camera', cam: dragCam }, p.x, p.y);
+      return;
+    }
+    if (dragMode === 'radiant') {
+      const d = screenToDir(p.x, p.y);
+      const a = altAzFromDir(d);
+      setRadiantFromDrag(a.alt, a.az);
+      updateTooltip({ type: 'radiant' }, p.x, p.y);
+      return;
+    }
+    if (dragMode === 'orbit' && orbitStart) {
+      const dx = p.x - orbitStart.x;
+      const dy = p.y - orbitStart.y;
+      state.viewYaw = ((orbitStart.yaw - dx * 0.22 / state.zoom) % 360 + 360) % 360;
+      state.viewPitch = clamp(orbitStart.pitch + dy * 0.22 / state.zoom, -88, 88);
+      state.heatDirty = true;
+      el.tooltip.classList.remove('show');
+      return;
+    }
+    // hover
+    const hit = hitTestGlobe(p.x, p.y);
+    state.hoverId = hit && hit.type === 'camera' ? hit.cam.id : null;
+    el.skyCanvas.classList.toggle('pointing', !!hit);
+    updateTooltip(hit, p.x, p.y);
+  }
+
+  function endSkyPointer(e) {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinchStart = 0;
+    if (pointers.size === 0) {
+      dragMode = null;
+      dragCam = null;
+      rollCam = null;
+      rollStart = null;
+      orbitStart = null;
+      state.interacting = false;
+      state.heatDirty = true;
+      el.skyCanvas.classList.remove('dragging');
+      setTimeout(() => { state.heatDirty = true; }, 120);
+    }
+  }
+
+  el.skyCanvas.addEventListener('pointerdown', onSkyPointerDown);
+  el.skyCanvas.addEventListener('pointermove', onSkyPointerMove);
+  el.skyCanvas.addEventListener('pointerup', endSkyPointer);
+  el.skyCanvas.addEventListener('pointercancel', endSkyPointer);
+  el.skyCanvas.addEventListener('pointerleave', e => {
+    if (pointers.size === 0) {
+      state.hoverId = null;
+      el.tooltip.classList.remove('show');
+      el.skyCanvas.classList.remove('pointing');
+    }
+  });
+  el.skyCanvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = Math.exp(-e.deltaY * 0.0012);
+    state.zoom = clamp(state.zoom * factor, 0.65, 1.8);
+    state.heatDirty = true;
+  }, { passive: false });
+
+  // ---------------------------------------------------------------------------
+  // pointer interaction: minimap
+  // ---------------------------------------------------------------------------
+  let miniDrag = null;
+  let miniHover = null;
+
+  function miniLocalPoint(e) {
+    const rect = el.miniCanvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function hitTestMini(x, y) {
+    const W = state.miniW;
+    let best = null, bestDist = 13;
+    for (const cam of state.cameras) {
+      const p = mapPoint(cam.f);
+      for (const off of [-W, 0, W]) {
+        const d = Math.hypot(p.x + off - x, p.y - y);
+        if (d < bestDist) { bestDist = d; best = { type: 'camera', cam }; }
+      }
+    }
+    const rp = mapPoint(dirFromAltAz(state.radiant.alt, state.radiant.az));
+    if (Math.hypot(rp.x - x, rp.y - y) < 15) return { type: 'radiant' };
+    return best;
+  }
+
+  function onMiniDown(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const p = miniLocalPoint(e);
+    const hit = hitTestMini(p.x, p.y);
+    if (!hit) return;
+    e.preventDefault();
+    el.miniCanvas.setPointerCapture(e.pointerId);
+    if (hit.type === 'camera') {
+      miniDrag = { type: 'camera', cam: hit.cam };
+      state.selectedId = hit.cam.id;
+    } else {
+      miniDrag = { type: 'radiant' };
+      state.selectedId = null;
+    }
+    updateRollUI();
+    state.miniDirty = true;
+    state.interacting = true;
+  }
+
+  function onMiniMove(e) {
+    const p = miniLocalPoint(e);
+    if (!miniDrag) {
+      const hit = hitTestMini(p.x, p.y);
+      miniHover = hit;
+      el.miniCanvas.style.cursor = hit ? 'grab' : 'crosshair';
+      return;
+    }
+    const a = mapToAltAz(p.x, p.y);
+    if (miniDrag.type === 'camera') {
+      setCameraAltAz(miniDrag.cam, a.alt, a.az);
+    } else {
+      setRadiantFromDrag(a.alt, a.az);
+    }
+    state.miniDirty = true;
+  }
+
+  function onMiniUp(e) {
+    if (miniDrag) {
+      miniDrag = null;
+      state.interacting = false;
+      state.heatDirty = true;
+      state.miniDirty = true;
+    }
+  }
+
+  el.miniCanvas.addEventListener('pointerdown', onMiniDown);
+  el.miniCanvas.addEventListener('pointermove', onMiniMove);
+  el.miniCanvas.addEventListener('pointerup', onMiniUp);
+  el.miniCanvas.addEventListener('pointercancel', onMiniUp);
+  el.miniCanvas.addEventListener('pointerleave', () => {
+    if (!miniDrag) {
+      miniHover = null;
+      el.miniCanvas.style.cursor = 'crosshair';
+    }
+  });
+  el.miniCanvas.addEventListener('dblclick', e => {
+    const p = miniLocalPoint(e);
+    const a = mapToAltAz(p.x, p.y);
+    state.viewYaw = a.az;
+    state.viewPitch = clamp(a.alt, -80, 80);
+    state.heatDirty = true;
+  });
+
+  // ---------------------------------------------------------------------------
+  // UI events
+  // ---------------------------------------------------------------------------
+  el.focalRange.addEventListener('input', updateFovReadout);
+  el.focalInput.addEventListener('focus', () => el.focalInput.select());
+  el.focalInput.addEventListener('input', () => {
+    const raw = parseInt(el.focalInput.value, 10);
+    if (!Number.isFinite(raw)) return;
+    el.focalRange.value = String(clamp(raw, 10, 200));
+    updateFovReadout();
+  });
+  const commitFocal = () => {
+    const f = clamp(parseInt(el.focalInput.value, 10) || 14, 10, 200);
+    el.focalInput.value = String(f);
+    el.focalRange.value = String(f);
+    updateFovReadout();
+  };
+  el.focalInput.addEventListener('change', commitFocal);
+  el.focalInput.addEventListener('blur', commitFocal);
+  el.focalInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitFocal();
+      el.focalInput.blur();
+    }
+  });
+  el.focalChips.addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    el.focalRange.value = chip.dataset.focal;
+    updateFovReadout();
+  });
+  el.sensorSelect.addEventListener('change', updateFovReadout);
+
+  el.countMinus.addEventListener('click', () => {
+    el.countInput.value = String(Math.max(1, (parseInt(el.countInput.value, 10) || 1) - 1));
+  });
+  el.countPlus.addEventListener('click', () => {
+    el.countInput.value = String(Math.min(24, (parseInt(el.countInput.value, 10) || 1) + 1));
+  });
+  el.countInput.addEventListener('change', () => {
+    el.countInput.value = String(clamp(parseInt(el.countInput.value, 10) || 1, 1, 24));
+  });
+
+  el.addGroupBtn.addEventListener('click', () => {
+    addGroup({
+      focal: currentFocal(),
+      sensorKey: currentSensorKey(),
+      count: clamp(parseInt(el.countInput.value, 10) || 1, 1, 24)
+    });
+  });
+
+  el.clearBtn.addEventListener('click', clearAll);
+
+  el.rollRange.addEventListener('input', () => {
+    const cam = selectedCamera();
+    if (!cam) return;
+    setCameraRoll(cam, (parseFloat(el.rollRange.value) || 0) * DEG);
+  });
+
+  el.groupList.addEventListener('click', e => {
+    const btn = e.target.closest('[data-del]');
+    if (!btn) return;
+    removeGroup(Number(btn.dataset.del));
+  });
+
+  el.showerSelect.addEventListener('change', () => {
+    state.shower = el.showerSelect.value;
+    updateShowerMeta();
+    if (state.shower === 'custom') {
+      state.manualRadiant = true;
+      updateRadiantUI();
+    } else {
+      computeRadiantForShower();
+    }
+    invalidateSimulation();
+  });
+
+  el.meteorModelSelect.addEventListener('change', () => {
+    state.meteorModel = el.meteorModelSelect.value;
+    invalidateSimulation();
+    showToast(`流星分布：${(METEOR_MODELS[state.meteorModel] || METEOR_MODELS.realistic).short}`);
+  });
+
+  el.radiantAltRange.addEventListener('input', () => {
+    setRadiantFromDrag(Number(el.radiantAltRange.value), state.radiant.az);
+  });
+  el.radiantAzRange.addEventListener('input', () => {
+    setRadiantFromDrag(state.radiant.alt, Number(el.radiantAzRange.value));
+  });
+
+  function readObservationInputs() {
+    const lat = parseFloat(el.latInput.value);
+    const lon = parseFloat(el.lonInput.value);
+    state.lat = Number.isFinite(lat) ? clamp(lat, -90, 90) : 40;
+    state.lon = Number.isFinite(lon) ? clamp(lon, -180, 180) : 116;
+    state.datetime = el.dtInput.value || state.datetime;
+    state.tz = parseFloat(el.tzSelect.value) || 0;
+    if (!state.manualRadiant) computeRadiantForShower();
+    rebuildSky();
+    updateShowerMeta();
+  }
+
+  el.latInput.addEventListener('change', readObservationInputs);
+  el.lonInput.addEventListener('change', readObservationInputs);
+  el.dtInput.addEventListener('change', readObservationInputs);
+  el.tzSelect.addEventListener('change', readObservationInputs);
+  el.recalcBtn.addEventListener('click', () => {
+    if (state.shower === 'custom') {
+      showToast('自定义流星雨请直接拖动天球上的辐射点');
+      return;
+    }
+    state.manualRadiant = false;
+    computeRadiantForShower();
+    showToast('已按地点与时间重新计算辐射点');
+  });
+
+  el.meteorCountRange.addEventListener('input', () => {
+    state.meteorCount = clamp(parseInt(el.meteorCountRange.value, 10) || 500, 100, 2000);
+    el.meteorCountVal.textContent = String(state.meteorCount);
+    invalidateSimulation();
+  });
+
+  el.simulateBtn.addEventListener('click', () => {
+    el.simulateBtn.disabled = true;
+    el.simulateBtn.textContent = '计算中…';
+    setTimeout(() => {
+      simulateMeteors();
+      el.simulateBtn.disabled = false;
+      el.simulateBtn.textContent = '✦ 开始流星模拟';
+    }, 40);
+  });
+
+  el.showStars.addEventListener('change', () => { state.showStars = el.showStars.checked; });
+  el.showConstellations.addEventListener('change', () => { state.showConstellations = el.showConstellations.checked; });
+  el.showMilkyWay.addEventListener('change', () => { state.showMilkyWay = el.showMilkyWay.checked; });
+  el.showGrid.addEventListener('change', () => { state.showGrid = el.showGrid.checked; });
+  el.showHeat.addEventListener('change', () => {
+    state.showHeat = el.showHeat.checked;
+    state.heatDirty = true;
+  });
+  el.showMeteors.addEventListener('change', () => {
+    state.showMeteors = el.showMeteors.checked;
+    updateSimUI();
+  });
+  el.persistTrails.addEventListener('change', () => {
+    state.persistTrails = el.persistTrails.checked;
+    updateSimUI();
+  });
+
+  el.resetViewBtn.addEventListener('click', () => {
+    state.viewYaw = 92;
+    state.viewPitch = 34;
+    state.zoom = 1;
+    state.heatDirty = true;
+    showToast('视角已重置');
+  });
+
+  el.helpBtn.addEventListener('click', () => el.helpModal.classList.add('show'));
+  el.closeHelpBtn.addEventListener('click', () => el.helpModal.classList.remove('show'));
+  el.helpModal.addEventListener('click', e => {
+    if (e.target === el.helpModal) el.helpModal.classList.remove('show');
+  });
+
+  function setMapExpanded(open) {
+    el.miniCard.classList.toggle('expanded', open);
+    el.mapBackdrop.classList.toggle('show', open);
+    el.expandMapBtn.textContent = open ? '⤡' : '⤢';
+    el.expandMapBtn.title = open ? '收起全天图' : '展开全天图';
+    state.miniDirty = true;
+    setTimeout(() => {
+      resizeAll();
+      state.heatDirty = true;
+      state.miniDirty = true;
+      drawMini();
+    }, 280);
+  }
+
+  el.expandMapBtn.addEventListener('click', () => {
+    setMapExpanded(!el.miniCard.classList.contains('expanded'));
+  });
+  el.mapBackdrop.addEventListener('click', () => setMapExpanded(false));
+
+  function openSidebar(open) {
+    el.sidebar.classList.toggle('open', open);
+    el.sidebarBackdrop.classList.toggle('show', open);
+  }
+  el.mobileToggle.addEventListener('click', () => openSidebar(!el.sidebar.classList.contains('open')));
+  el.sidebarClose.addEventListener('click', () => openSidebar(false));
+  el.sidebarBackdrop.addEventListener('click', () => openSidebar(false));
+
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      el.helpModal.classList.remove('show');
+      if (framing.open) closeFraming();
+      if (el.miniCard.classList.contains('expanded')) setMapExpanded(false);
+      openSidebar(false);
+    }
+    if (e.key === 'r' || e.key === 'R') {
+      if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+      state.viewYaw = 92;
+      state.viewPitch = 34;
+      state.zoom = 1;
+      state.heatDirty = true;
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // resize observers
+  // ---------------------------------------------------------------------------
+  let resizeTimer = 0;
+  function scheduleResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      resizeAll();
+      state.heatDirty = true;
+      state.miniDirty = true;
+      if (framing.open) requestFramingDraw();
+    }, 60);
+  }
+
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(scheduleResize);
+    ro.observe(el.main);
+    ro.observe(el.miniCard);
+  }
+  window.addEventListener('resize', scheduleResize);
+
+  // ---------------------------------------------------------------------------
+  // seed & boot
+  // ---------------------------------------------------------------------------
+  function seedDefaults() {
+    const defs = [
+      { focal: 14, sensorKey: 'ff', positions: [[55, 220], [40, 40], [25, 150]] },
+      { focal: 24, sensorKey: 'ff', positions: [[20, 310], [10, 235]] },
+      { focal: 50, sensorKey: 'ff', positions: [[80, 70]] }
+    ];
+    for (let i = 0; i < defs.length; i++) {
+      const d = defs[i];
+      const group = {
+        id: state.nextGroupId++,
+        focal: d.focal,
+        sensorKey: d.sensorKey,
+        sensor: SENSORS[d.sensorKey],
+        count: d.positions.length,
+        color: GROUP_COLORS[i % GROUP_COLORS.length],
+        cameras: []
+      };
+      state.groups.push(group);
+      for (const [alt, az] of d.positions) {
+        const cam = createCamera({
+          focal: d.focal,
+          sensor: group.sensor,
+          sensorKey: d.sensorKey,
+          alt,
+          az,
+          roll: 0,
+          group
+        });
+        state.cameras.push(cam);
+        group.cameras.push(cam);
+      }
+    }
+  }
+
+  function runSelfTest() {
+    const gridCovered = () => {
+      recomputeCoverage();
+      let n = 0;
+      for (let i = 0; i < coverageGrid.length; i++) if (coverageGrid[i]) n++;
+      return n;
+    };
+    const out = {};
+    out.projections = Object.keys(FRAMING_PROJECTIONS).length;
+    out.initial = { cameras: state.cameras.length, groups: state.groups.length, gridCovered: gridCovered() };
+    addGroup({ focal: 35, sensorKey: 'ff', count: 2, silent: true });
+    out.afterAdd = { cameras: state.cameras.length, groups: state.groups.length, gridCovered: gridCovered() };
+    const cam = state.cameras[0];
+    setCameraAltAz(cam, 20, 10);
+    out.afterMove = { alt: cam.alt, az: cam.az, gridCovered: gridCovered() };
+    setCameraRoll(cam, 35 * DEG);
+    out.afterRoll = { roll: Math.round(cam.roll * RAD), gridCovered: gridCovered() };
+    simulateMeteors();
+    out.sim = state.results;
+    out.trailCount = state.animMeteors.length;
+    state.meteorCount = 1200;
+    simulateMeteors();
+    out.simMore = { total: state.results.total, trails: state.animMeteors.length };
+    state.meteorCount = 500;
+    el.focalInput.value = '85';
+    el.focalInput.dispatchEvent(new Event('input', { bubbles: true }));
+    el.focalInput.dispatchEvent(new Event('change', { bubbles: true }));
+    out.focalInput = {
+      input: el.focalInput.value,
+      range: el.focalRange.value,
+      focal: currentFocal(),
+      hfov: el.hfov.textContent
+    };
+    el.focalInput.value = '999';
+    el.focalInput.dispatchEvent(new Event('change', { bubbles: true }));
+    out.focalClamp = { input: el.focalInput.value, range: el.focalRange.value, focal: currentFocal() };
+    el.focalInput.value = '14';
+    el.focalInput.dispatchEvent(new Event('change', { bubbles: true }));
+    const pre = document.createElement('pre');
+    pre.id = 'testOut';
+    pre.style.cssText = 'position:fixed;left:-9999px;top:0';
+    pre.textContent = JSON.stringify(out);
+    document.body.appendChild(pre);
+    document.title = 'TEST ' + JSON.stringify(out);
+  }
+
+  function boot() {
+    seedDefaults();
+    const qm = QUERY.get('model');
+    if (qm && METEOR_MODELS[qm]) {
+      state.meteorModel = qm;
+      el.meteorModelSelect.value = qm;
+    }
+    const qf = parseFloat(QUERY.get('focal'));
+    if (Number.isFinite(qf)) {
+      const f = clamp(qf, 10, 200);
+      el.focalInput.value = String(f);
+      el.focalRange.value = String(f);
+    }
+    if (QUERY.get('persist') === '0') {
+      state.persistTrails = false;
+      el.persistTrails.checked = false;
+    }
+    if (QUERY.get('constellations') === '0') {
+      state.showConstellations = false;
+      el.showConstellations.checked = false;
+    }
+    if (QUERY.get('milkyway') === '0') {
+      state.showMilkyWay = false;
+      el.showMilkyWay.checked = false;
+    }
+    if (QUERY.get('stars') === '0') {
+      state.showStars = false;
+      el.showStars.checked = false;
+    }
+    if (QUERY.get('heat') === '0') {
+      state.showHeat = false;
+      el.showHeat.checked = false;
+    }
+    const qy = parseFloat(QUERY.get('yaw'));
+    if (Number.isFinite(qy)) state.viewYaw = ((qy % 360) + 360) % 360;
+    const qp = parseFloat(QUERY.get('pitch'));
+    if (Number.isFinite(qp)) state.viewPitch = clamp(qp, -89, 89);
+    updateFovReadout();
+    updateShowerMeta();
+    computeRadiantForShower();
+    rebuildSky();
+    renderGroupList();
+    updateSimUI();
+    resizeAll();
+    recomputeCoverage();
+    computeMetrics();
+    if (QUERY.get('select') === '1' && state.cameras.length) {
+      state.selectedId = state.cameras[0].id;
+    }
+    if (QUERY.get('clear') === '1') {
+      clearAll();
+      recomputeCoverage();
+      computeMetrics();
+    }
+    const qroll = parseFloat(QUERY.get('roll'));
+    if (Number.isFinite(qroll) && state.cameras.length) {
+      if (!state.selectedId) state.selectedId = state.cameras[0].id;
+      setCameraRoll(selectedCamera(), qroll * DEG, true);
+      recomputeCoverage();
+      computeMetrics();
+    }
+    updateRollUI();
+    if (QUERY.get('demo') === 'sim') {
+      simulateMeteors();
+    }
+    if (QUERY.get('expand') === '1') {
+      setTimeout(() => setMapExpanded(true), 260);
+    }
+    if (QUERY.get('sidebar') === '1') {
+      setTimeout(() => openSidebar(true), 260);
+    }
+    if (QUERY.get('scroll') === '1') {
+      setTimeout(() => { el.sidebar.scrollTop = el.sidebar.scrollHeight; }, 360);
+    }
+    if (QUERY.get('help') === '1') {
+      setTimeout(() => el.helpModal.classList.add('show'), 260);
+    }
+    let qproj = QUERY.get('proj');
+    if (qproj === 'fisheye') qproj = 'fisheyeCircular';
+    else if (qproj === 'transverse') qproj = 'transverseMercator';
+    if (qproj && FRAMING_PROJECTIONS[qproj]) {
+      framing.projection = qproj;
+      el.framingProjection.value = qproj;
+    }
+    if (QUERY.get('framing') === '1') {
+      setTimeout(openFraming, 520);
+    }
+
+    state.heatDirty = true;
+    state.miniDirty = true;
+    if (QUERY.has('test')) setTimeout(runSelfTest, 350);
+    requestAnimationFrame(loop);
+  }
+
+  // expose a tiny API for automated smoke tests / console tinkering
+  window.__METEOR_APP__ = {
+    state,
+    addGroup,
+    clearAll,
+    simulateMeteors,
+    computeRadiantForShower,
+    recomputeCoverage,
+    computeMetrics,
+    setRadiantFromDrag,
+    setCameraAltAz,
+    setCameraRoll,
+    updateCameraBasis,
+    cameraContainsXYZ,
+    selectedCamera,
+    spawnGroupCameras,
+    updateRollUI,
+    renderGroupList,
+    updateFovReadout,
+    updateRadiantUI,
+    updateShowerMeta,
+    updateSimUI,
+    drawMini,
+    drawGlobe,
+    resizeAll,
+    openFraming,
+    closeFraming,
+    drawFraming,
+    framing
+  };
+
+  window.addEventListener('error', e => {
+    console.error('[meteor-coverage]', e.error || e.message);
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>
